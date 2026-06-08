@@ -21,12 +21,13 @@ const TAX_CONFIG = {
     6: 0.44, 7: 0.39, 8: 0.34, 9: 0.30, 10: 0.27,
   },
   newMarketPrice: { le2000: 28000, le3000: 42000, gt3000: 65000 },
-  excise: {
-    base8: { le2000: 400, le3000: 800, gt3000: 1600 },
-    perYearOver8: { le2000: 100, le3000: 200, gt3000: 400 },
+  // Oficiale: Vendimi Qeverisë 24.03.2015 — vlera fikse sipas cc & moshës
+  // Burimi: kosovatools.org/taksa-e-veturave (GPL, open-source)
+  exciseTable: {
+    le2000: [200,300,400,500,600,700,800,900,1000,1100], // maxAge: ≤8,9,10,11,12,13,14,15,16,17+
+    le3000: [400,600,800,1000,1200,1400,1600,1800,2000,2200],
+    gt3000: [1000,1500,1800,2100,2400,2700,3000,3300,3600,3900],
   },
-  // EV-Akzise bestätigt (Ligji Nr. 03/L-109)
-  exciseEV: { age0to8: 400, age9: 600, age10: 700 },
   officialSources: { tarik: "https://dogana.rks-gov.net/", label: "Tarifa e Integruar e Kosovës (TARIK)" },
 };
 
@@ -130,8 +131,11 @@ const DEMO_VEHICLES = {
   "AUDIA4":       { make: "Audi",       model: "A4 2.0 TDI",          category: "car", cc: 1968, fuel: "diesel",  euro: 6, year: 2019 },
   "AUDIQ5":       { make: "Audi",       model: "Q5 2.0 TDI",          category: "car", cc: 1968, fuel: "diesel",  euro: 6, year: 2019 },
   // Renault / Dacia
-  "CAPTUR":       { make: "Renault",    model: "Captur 1.5 dCi",       category: "car", cc: 1461, fuel: "diesel",  euro: 6, year: 2020 },
-  "SANDERO":      { make: "Dacia",      model: "Sandero 1.0 TCe",      category: "car", cc: 999,  fuel: "petrol",  euro: 6, year: 2021 },
+  "CAPTUR":       { make: "Renault",    model: "Captur 1.5 dCi",       category: "car", cc: 1461, fuel: "diesel",  euro: 6, year: 2021 },
+  "SANDERO":      { make: "Dacia",      model: "Sandero 1.0 TCe",      category: "car", cc: 999,  fuel: "petrol",  euro: 6, year: 2022 },
+  // Peugeot
+  "P308":         { make: "Peugeot",    model: "308 1.5 BlueHDi",      category: "car", cc: 1499, fuel: "diesel",  euro: 6, year: 2020 },
+  "P208":         { make: "Peugeot",    model: "208 1.2 PureTech",     category: "car", cc: 1199, fuel: "petrol",  euro: 6, year: 2021 },
   // Elektro
   "TESLA3":       { make: "Tesla",      model: "Model 3",              category: "car", cc: 0,    fuel: "ev",      euro: 6, year: 2022 },
   "EGOLF":        { make: "Volkswagen", model: "e-Golf",               category: "car", cc: 0,    fuel: "ev",      euro: 6, year: 2020 },
@@ -149,11 +153,12 @@ const DEMO_VEHICLES = {
 };
 
 const POPULAR_MODELS = [
-  { label: "VW Golf", make: "Volkswagen", model: "Golf", cc: 1968, fuel: "diesel", euro: 6, year: 2019, category: "car", hs: "8703 32" },
-  { label: "BMW 3er", make: "BMW", model: "320d", cc: 1995, fuel: "diesel", euro: 6, year: 2020, category: "car", hs: "8703 32" },
+  { label: "Dacia Sandero", make: "Dacia", model: "Sandero 1.0 TCe", cc: 999, fuel: "petrol", euro: 6, year: 2022, category: "car", hs: "8703 21" },
+  { label: "Renault Captur", make: "Renault", model: "Captur 1.5 dCi", cc: 1461, fuel: "diesel", euro: 6, year: 2021, category: "car", hs: "8703 32" },
+  { label: "Peugeot 308", make: "Peugeot", model: "308 1.5 BlueHDi", cc: 1499, fuel: "diesel", euro: 6, year: 2020, category: "car", hs: "8703 32" },
+  { label: "VW Golf", make: "Volkswagen", model: "Golf 7 2.0 TDI", cc: 1968, fuel: "diesel", euro: 6, year: 2019, category: "car", hs: "8703 32" },
   { label: "Škoda Octavia", make: "Škoda", model: "Octavia 2.0 TDI", cc: 1968, fuel: "diesel", euro: 6, year: 2019, category: "car", hs: "8703 32" },
-  { label: "Mercedes C", make: "Mercedes-Benz", model: "C 200", cc: 1497, fuel: "petrol", euro: 6, year: 2019, category: "car", hs: "8703 32" },
-  { label: "Dacia Sandero", make: "Dacia", model: "Sandero 1.0 TCe", cc: 999, fuel: "petrol", euro: 6, year: 2021, category: "car", hs: "8703 21" },
+  { label: "BMW 320d", make: "BMW", model: "320d", cc: 1995, fuel: "diesel", euro: 6, year: 2020, category: "car", hs: "8703 32" },
 ];
 
 const C = {
@@ -165,12 +170,15 @@ const C = {
 };
 
 const ORIGIN = {
-  DE: { sq: "Gjermani", sr: "Nemačka", en: "Germany", de: "Deutschland", vatRefund: 0.19 },
-  CH: { sq: "Zvicër", sr: "Švajcarska", en: "Switzerland", de: "Schweiz", vatRefund: 0.077 },
-  AT: { sq: "Austri", sr: "Austrija", en: "Austria", de: "Österreich", vatRefund: 0.20 },
-  NL: { sq: "Holandë", sr: "Holandija", en: "Netherlands", de: "Niederlande", vatRefund: 0.21 },
-  BE: { sq: "Belgjikë", sr: "Belgija", en: "Belgium", de: "Belgien", vatRefund: 0.21 },
+  DE: { flag:"🇩🇪", sq:"Gjermani", sr:"Nemačka", en:"Germany", de:"Deutschland", vatRefund:0.19 },
+  CH: { flag:"🇨🇭", sq:"Zvicër", sr:"Švajcarska", en:"Switzerland", de:"Schweiz", vatRefund:0.077 },
+  AT: { flag:"🇦🇹", sq:"Austri", sr:"Austrija", en:"Austria", de:"Österreich", vatRefund:0.20 },
+  NL: { flag:"🇳🇱", sq:"Holandë", sr:"Holandija", en:"Netherlands", de:"Niederlande", vatRefund:0.21 },
+  BE: { flag:"🇧🇪", sq:"Belgjikë", sr:"Belgija", en:"Belgium", de:"Belgien", vatRefund:0.21 },
+  FR: { flag:"🇫🇷", sq:"Francë", sr:"Francuska", en:"France", de:"Frankreich", vatRefund:0.20 },
+  IT: { flag:"🇮🇹", sq:"Itali", sr:"Italija", en:"Italy", de:"Italien", vatRefund:0.22 },
 };
+const originName = (k, lang) => ORIGIN[k] ? `${ORIGIN[k].flag} ${ORIGIN[k][lang] || ORIGIN[k].en}` : k;
 const FUEL = {
   petrol: { sq: "Benzinë", sr: "Benzin", en: "Petrol", de: "Benzin" },
   diesel: { sq: "Naftë", sr: "Dizel", en: "Diesel", de: "Diesel" },
@@ -240,6 +248,10 @@ const T = {
     yearError: "Viti duhet të jetë ndërmjet 1980 dhe 2026.",
     priceError: "Çmimi duhet të jetë mes €100 dhe €500.000.",
     ccError: "Cilindrata duhet të jetë mes 50 dhe 10.000 cc.",
+    tipsTitle: "💡 Si të kursesh",
+    tipEur1: (amt) => `Kërko certifikatën EUR.1 — kursen €${amt} doganë (0% me EUR.1)`,
+    tipAge: (save, yr) => `Kërko vetura nga viti ${yr}+ (≤8 vjet) — kursen €${save} akcizë`,
+    tipEngine: (save) => `Motorr ≤2.000cc kursen €${save} akcizë krahasuar me motorrin aktual`,
   },
   sr: {
     tagline: "Asistent za uvoz vozila",
@@ -288,6 +300,10 @@ const T = {
     yearError: "Godina mora biti između 1980 i 2026.",
     priceError: "Cena mora biti između €100 i €500.000.",
     ccError: "Zapremina mora biti između 50 i 10.000 cc.",
+    tipsTitle: "💡 Kako uštedeti",
+    tipEur1: (amt) => `Zatražite EUR.1 sertifikat — štedi €${amt} carine (0% sa EUR.1)`,
+    tipAge: (save, yr) => `Tražite vozila od ${yr}+ (≤8 god.) — štedi €${save} akcize`,
+    tipEngine: (save) => `Motor ≤2.000cc štedi €${save} akcize u poređenju sa trenutnim`,
   },
   en: {
     tagline: "Car import assistant",
@@ -336,6 +352,10 @@ const T = {
     yearError: "Year must be between 1980 and 2026.",
     priceError: "Price must be between €100 and €500,000.",
     ccError: "Engine size must be between 50 and 10,000 cc.",
+    tipsTitle: "💡 Ways to save",
+    tipEur1: (amt) => `Ask for an EUR.1 certificate — saves €${amt} customs (0% with EUR.1)`,
+    tipAge: (save, yr) => `Look for cars from ${yr}+ (≤8 yrs old) — saves €${save} excise`,
+    tipEngine: (save) => `≤2,000cc engine saves €${save} excise vs. current engine`,
   },
   de: {
     tagline: "Auto-Import-Assistent",
@@ -384,24 +404,25 @@ const T = {
     yearError: "Baujahr muss zwischen 1980 und 2026 liegen.",
     priceError: "Preis muss zwischen €100 und €500.000 liegen.",
     ccError: "Hubraum muss zwischen 50 und 10.000 cc liegen.",
+    tipsTitle: "💡 So kannst du sparen",
+    tipEur1: (amt) => `EUR.1-Bescheinigung anfragen — spart €${amt} Zoll (0% mit EUR.1)`,
+    tipAge: (save, yr) => `Fahrzeug ab ${yr}+ suchen (≤8 Jahre) — spart €${save} Akzise`,
+    tipEngine: (save) => `Motor ≤2.000cc spart €${save} Akzise ggü. aktuellem Hubraum`,
   },
 };
 
 const fmt = (n) => new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(Math.round(n || 0));
-const transportByOrigin = { DE: 650, CH: 720, AT: 600, NL: 780, BE: 760 };
+const transportByOrigin = { DE: 650, CH: 720, AT: 600, NL: 780, BE: 760, FR: 800, IT: 750 };
 const NOW_YEAR = 2026;
 
 function ccBand(cc) { return cc <= 2000 ? "le2000" : cc <= 3000 ? "le3000" : "gt3000"; }
 
 function computeExcise({ cc, ageYears, isNewUnregistered, fuel }) {
-  if (isNewUnregistered || cc <= 0) return 0;
-  if (fuel === "ev") {
-    if (ageYears <= 8) return TAX_CONFIG.exciseEV.age0to8;
-    if (ageYears === 9) return TAX_CONFIG.exciseEV.age9;
-    return TAX_CONFIG.exciseEV.age10;
-  }
+  if (isNewUnregistered || cc <= 0) return 0; // EV (cc=0) & new → 0
   const b = ccBand(cc);
-  return TAX_CONFIG.excise.base8[b] + Math.max(0, ageYears - 8) * TAX_CONFIG.excise.perYearOver8[b];
+  const tbl = TAX_CONFIG.exciseTable[b]; // [≤8, 9, 10, 11, 12, 13, 14, 15, 16, ≥17]
+  const idx = ageYears <= 8 ? 0 : Math.min(ageYears - 8, 9); // clamp to table length
+  return tbl[idx];
 }
 
 function computeCatalogValue({ cc, ageYears }) {
@@ -475,11 +496,7 @@ function WizardMode({ t, lang, C, fmt }) {
     const transport = wOrigin.transport;
     const cif = wPrice + transport;
     const customs = cif * 0.10;
-    const cc = wModel.cc;
-    const band = cc <= 2000 ? "le2000" : cc <= 3000 ? "le3000" : "gt3000";
-    const exciseBase = { le2000: 400, le3000: 800, gt3000: 1600 };
-    const exciseExtra = { le2000: 100, le3000: 200, gt3000: 400 };
-    const excise = exciseBase[band] + Math.max(0, ageYears - 8) * exciseExtra[band];
+    const excise = computeExcise({ cc: wModel.cc, ageYears, isNewUnregistered: false, fuel: wModel.fuel || "diesel" });
     const vatBase = cif + customs + excise;
     const vat = vatBase * 0.18;
     const reg = 50;
@@ -727,11 +744,7 @@ function VergleichMode({ t, lang, C, fmt, calc, price, make, model, year, ageYea
   const v2calc = useMemo(() => {
     const cif = v2price + v2transport;
     const customs = cif * 0.10;
-    const band = v2cc <= 2000 ? "le2000" : v2cc <= 3000 ? "le3000" : "gt3000";
-    const exciseBase = { le2000: 400, le3000: 800, gt3000: 1600 };
-    const exciseExtra = { le2000: 100, le3000: 200, gt3000: 400 };
-    const excise = v2fuel === "ev" ? 400 :
-      exciseBase[band] + Math.max(0, v2age - 8) * exciseExtra[band];
+    const excise = computeExcise({ cc: v2cc, ageYears: v2age, isNewUnregistered: false, fuel: v2fuel });
     const vatBase = cif + customs + excise;
     const vat = vatBase * 0.18;
     const reg = 50;
@@ -947,6 +960,53 @@ function InfoPage({ t, lang, C }) {
       <div style={{ textAlign: "center", marginTop: 24, fontSize: 12, color: C.muted }}>
         URA v3 · {lang === "de" ? "Kostenlos & Open Source" : "Free & Open Source"} · 2026
       </div>
+    </div>
+  );
+}
+
+// ─── SAVINGS TIPS ───────────────────────────────────────────────────────────
+function SavingsTips({ t, calc, hasEur1, ageYears, engine, fuel, C }) {
+  if (fuel === "ev" || calc.arrival <= 0) return null;
+  const tips = [];
+
+  // Tip 1: EUR.1 certificate — saves customs if not already using it
+  if (!hasEur1 && calc.customs > 50) {
+    tips.push({ icon: "📄", text: t.tipEur1(Math.round(calc.customs)) });
+  }
+
+  // Tip 2: Buy a car ≤8 years old — saves excise if current car is >8 years
+  if (ageYears > 8) {
+    const exciseAt8 = (function() {
+      const b = engine <= 2000 ? "le2000" : engine <= 3000 ? "le3000" : "gt3000";
+      return TAX_CONFIG.exciseTable[b][0]; // index 0 = ≤8 yrs
+    })();
+    const saving = calc.excise - exciseAt8;
+    if (saving > 50) {
+      const targetYear = NOW_YEAR - 8;
+      tips.push({ icon: "📅", text: t.tipAge(Math.round(saving), targetYear) });
+    }
+  }
+
+  // Tip 3: Smaller engine saves excise (only if engine > 2000cc)
+  if (engine > 2000) {
+    const exciseSmall = TAX_CONFIG.exciseTable["le2000"][ageYears <= 8 ? 0 : Math.min(ageYears - 8, 9)];
+    const saving = calc.excise - exciseSmall;
+    if (saving > 50) {
+      tips.push({ icon: "⚙️", text: t.tipEngine(Math.round(saving)) });
+    }
+  }
+
+  if (tips.length === 0) return null;
+
+  return (
+    <div style={{ background: "rgba(16,185,129,0.07)", border: "1.5px solid rgba(16,185,129,0.25)", borderRadius: 16, padding: "14px 16px", marginBottom: 14 }}>
+      <div style={{ fontSize: 12, fontWeight: 800, color: "#059669", letterSpacing: .4, textTransform: "uppercase", marginBottom: 10 }}>{t.tipsTitle}</div>
+      {tips.map((tip, i) => (
+        <div key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start", marginBottom: i < tips.length - 1 ? 8 : 0 }}>
+          <span style={{ fontSize: 16, flexShrink: 0 }}>{tip.icon}</span>
+          <span style={{ fontSize: 12.5, fontWeight: 600, color: C.ink, lineHeight: 1.5 }}>{tip.text}</span>
+        </div>
+      ))}
     </div>
   );
 }
@@ -1775,6 +1835,25 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
           <span style={{ fontSize: 12.5, fontWeight: 700, color: C.muted }}>{t.importTaxes}</span>
           <span style={{ fontSize: 13, fontWeight: 800, fontVariantNumeric: "tabular-nums", color: C.muted }}>€ {fmt(calc.importTaxes)}</span>
         </div>
+        {/* Cost proportion bar */}
+        {calc.arrival > 0 && (() => {
+          const total = calc.arrival;
+          const segments = [
+            { val: price, color: C.blue, opacity: .85 },
+            { val: (transport || 0) + (insurance || 0), color: "#6366f1", opacity: .75 },
+            { val: calc.customs, color: "#f59e0b", opacity: .9 },
+            { val: calc.excise, color: "#ef4444", opacity: .85 },
+            { val: calc.vat, color: "#8b5cf6", opacity: .8 },
+            { val: calc.reg, color: C.greenDeep, opacity: .8 },
+          ].filter(s => s.val > 0);
+          return (
+            <div style={{ height: 8, borderRadius: 6, overflow: "hidden", display: "flex", margin: "6px 0 8px", gap: 1 }}>
+              {segments.map((s, i) => (
+                <div key={i} style={{ flex: s.val / total, background: s.color, opacity: s.opacity, minWidth: s.val / total > 0.01 ? 3 : 0 }} />
+              ))}
+            </div>
+          );
+        })()}
       </div>
       <div style={{ background: `linear-gradient(135deg,#e6c878,${C.blue} 60%,${C.greenDeep})`, color: C.navy, padding: "20px 22px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
@@ -1801,6 +1880,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
       </div>
       <div style={{ fontFamily: "'Fraunces',serif", fontWeight: 600, fontSize: 20, color: C.blue, fontVariantNumeric: "tabular-nums" }}>€ {fmt(calc.toState)}</div>
     </div>
+    <SavingsTips t={t} calc={calc} hasEur1={hasEur1} ageYears={ageYears} engine={engine} fuel={fuel} C={C} />
     <SharePanel t={t} make={make} model={model} year={year} arrival={calc.arrival} price={price} lang={lang} />
     <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
       <button onClick={downloadSummary} style={{ flex: 1, background: C.glass, border: `1.5px solid ${C.line}`, borderRadius: 13, padding: "13px", fontFamily: "inherit", fontWeight: 700, fontSize: 13.5, color: C.ink, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}><Download size={16} color={C.blue} /> {t.download}</button>
@@ -1945,7 +2025,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                   </div>
                 )}
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
-                  {["GOLF7TDI","BMW320D","OCTAVIA","SPRINTER313","VITO","CAPTUR","TESLA3","COROLLA"].map((k) => (
+                  {["SANDERO","GOLF7TDI","P308","BMW320D","OCTAVIA","CAPTUR","TESLA3","SPRINTER313"].map((k) => (
                     <button key={k} onClick={() => { setIdent(k); recognize(k); }} style={{ background: C.glass, border: `1px solid ${C.blue}`, borderRadius: 20, padding: "6px 12px", fontFamily: "inherit", fontSize: 11.5, fontWeight: 700, color: C.blue, cursor: "pointer", letterSpacing: .5 }}>{k}</button>
                   ))}
                 </div>
@@ -1957,8 +2037,8 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                   <div><label style={lbl}>{t.make}</label><input style={inputBox} value={make} onChange={(e) => setMake(e.target.value)} /></div>
                   <div><label style={lbl}>{t.model}</label><input style={inputBox} value={model} onChange={(e) => setModel(e.target.value)} /></div>
                         <div><label style={lbl}>{t.engine}</label><input style={errors.engine ? inputErr : inputBox} type="number" value={engine} onChange={(e) => { const v = +e.target.value; setEngine(v); validate("engine", v); }} />{errors.engine && <div style={{ fontSize: 11, color: C.red, marginTop: 4 }}>{errors.engine}</div>}</div>
-                  <div><label style={lbl}>{t.fuel}</label><Select label={t.fuel} value={fuel} onChange={(e) => setFuel(e.target.value)}><option value="petrol">{t.fuelPetrol}</option><option value="diesel">{t.fuelDiesel}</option><option value="hybrid">{t.fuelHybrid}</option><option value="ev">{t.fuelEV}</option></Select></div>
-                  <div><label style={lbl}>{t.origin}</label><Select label={t.origin} value={origin} onChange={(e) => setOrigin(e.target.value)}>{Object.entries(ORIGIN).map(([k,v]) => <option key={k} value={k}>{v.flag} {v.name}</option>)}</Select></div>
+                  <div><label style={lbl}>{t.fuel}</label><Select label={t.fuel} value={fuel} onChange={(e) => setFuel(e.target.value)}><option value="petrol">{FUEL.petrol[lang]}</option><option value="diesel">{FUEL.diesel[lang]}</option><option value="hybrid">{FUEL.hybrid[lang]}</option><option value="ev">{FUEL.ev[lang]}</option></Select></div>
+                  <div><label style={lbl}>{t.origin}</label><Select label={t.origin} value={origin} onChange={(e) => setOrigin(e.target.value)}>{Object.keys(ORIGIN).map(k => <option key={k} value={k}>{originName(k, lang)}</option>)}</Select></div>
                   <div><label style={lbl}>{t.euro}</label><input style={inputBox} type="number" min={1} max={7} value={euro} onChange={(e) => setEuro(+e.target.value)} /></div>
                   <div><label style={lbl}>{t.hs}</label><input style={inputBox} value={hs} onChange={(e) => setHs(e.target.value)} /></div>
                 </div>
@@ -2084,3 +2164,4 @@ function Toggle({ on, set, label }) {
     </button>
   );
 }
+      
