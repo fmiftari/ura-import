@@ -1812,7 +1812,15 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
         <span style={{ fontSize: 12, color: C.amber, fontWeight: 700, lineHeight: 1.45 }}>{t.catUnverified}</span>
       </div>
     )}
-    {!isNew && catalogValue && (
+    {origin === "KR" && !isNew && (
+      <div style={{ marginBottom: 14, background: "rgba(59,130,246,0.08)", border: "1.5px solid rgba(59,130,246,0.25)", borderRadius: 14, padding: "11px 15px", display: "flex", gap: 9, alignItems: "flex-start" }}>
+        <Info size={15} color="#3b82f6" style={{ flexShrink: 0, marginTop: 1 }} />
+        <span style={{ fontSize: 12, color: "#3b82f6", fontWeight: 700, lineHeight: 1.5 }}>
+          🇰🇷 {lang === "de" ? "Kosovo Dogana bewertet koreanische Fahrzeuge zum Kaufpreis — kein Katalogwert." : lang === "sq" ? "Dogana e Kosovës vlerëson vetura koreane sipas çmimit të blerjes — pa vlerë katalogu." : lang === "sr" ? "Kosovska carina vrednuje korejska vozila po kupovnoj ceni — bez kataloške vrednosti." : "Kosovo Customs values Korean cars at purchase price — no catalog valuation applied."}
+        </span>
+      </div>
+    )}
+    {!isNew && catalogValue && origin !== "KR" && (
       <div style={{ marginBottom: 14 }}>
         <button onClick={() => setShowCatalog(s => !s)} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", background: catalogHigher ? "rgba(216,166,87,0.14)" : C.glass, border: `1px solid ${catalogHigher ? "rgba(216,166,87,.5)" : C.line}`, borderRadius: 14, padding: "12px 15px", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 700, color: catalogHigher ? C.amber : C.muted }}>
           <Info size={15} color={catalogHigher ? C.amber : C.muted} style={{ flexShrink: 0 }} />
@@ -2094,13 +2102,21 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                 <CheckCircle2 size={14} style={{ color: C.green, flexShrink: 0 }} />
                 <span style={{ fontSize: 12, fontWeight: 700, color: C.muted }}>{lang==="de" ? `Erfüllt Kriterien · ${ageYears} J. · Euro ${euro}` : lang==="sq" ? `Plotëson kriteret · ${ageYears} vjet · Euro ${euro}` : `Meets criteria · ${ageYears} yrs · Euro ${euro}`}</span>
               </div>
-              {catalogHigher && (
+              {origin === "KR" && !isNew && (
+                <div style={{ marginBottom: 14, background: "rgba(59,130,246,0.08)", border: "1.5px solid rgba(59,130,246,0.25)", borderRadius: 14, padding: "11px 15px", display: "flex", gap: 9, alignItems: "flex-start" }}>
+                  <Info size={15} color="#3b82f6" style={{ flexShrink: 0, marginTop: 1 }} />
+                  <span style={{ fontSize: 12, color: "#3b82f6", fontWeight: 700, lineHeight: 1.5 }}>
+                    🇰🇷 {lang === "de" ? "Kosovo Dogana bewertet koreanische Fahrzeuge zum Kaufpreis — kein Katalogwert." : lang === "sq" ? "Dogana e Kosovës vlerëson vetura koreane sipas çmimit të blerjes — pa vlerë katalogu." : lang === "sr" ? "Kosovska carina vrednuje korejska vozila po kupovnoj ceni — bez kataloške vrednosti." : "Kosovo Customs values Korean cars at purchase price — no catalog valuation applied."}
+                  </span>
+                </div>
+              )}
+              {catalogHigher && origin !== "KR" && (
                 <button onClick={() => setShowCatalog(!showCatalog)} style={{ width: "100%", background: `${C.blue}12`, border: `1.5px solid ${C.blue}44`, borderRadius: 14, padding: "11px 16px", cursor: "pointer", fontFamily: "inherit", textAlign: "left", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
                   <span style={{ fontSize: 13, fontWeight: 700, color: C.blue }}>ℹ️ {t.catalogHigher(fmt(catalogValue))}</span>
                   <ChevronDown size={14} style={{ color: C.blue, transform: showCatalog ? "rotate(180deg)" : "none", transition: "transform .2s" }} />
                 </button>
               )}
-              {showCatalog && catalogValue && (
+              {showCatalog && catalogValue && origin !== "KR" && (
                 <div className="ura-rise" style={{ background: C.glass, border: `1px solid ${C.line}`, borderRadius: 14, padding: "14px 18px", marginBottom: 14 }}>
                   <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.6 }}>{t.catalogWarning}</div>
                   {calc.catalogArrival && <div style={{ marginTop: 10, fontWeight: 700, color: C.ink, fontSize: 14 }}>{"Kosto me katalog:"} <span style={{ color: C.blue }}>€{fmt(calc.catalogArrival)}</span></div>}
