@@ -518,9 +518,9 @@ function WizardMode({ t, lang, C, fmt }) {
     if (!wOrigin || !wModel) return null;
     const transport = wOrigin.transport;
     const cif = wPrice + transport;
-    const customs = cif * 0.10;
+    const customs = wPrice * 0.10;
     const excise = computeExcise({ cc: wModel.cc, ageYears, isNewUnregistered: false, fuel: wModel.fuel || "diesel" });
-    const vatBase = cif + customs + excise;
+    const vatBase = wPrice + customs + excise;
     const vat = vatBase * 0.18;
     const reg = 50;
     const arrival = cif + customs + excise + vat + reg;
@@ -766,9 +766,9 @@ function VergleichMode({ t, lang, C, fmt, calc, price, make, model, year, ageYea
   const v2age = Math.max(0, 2026 - v2year);
   const v2calc = useMemo(() => {
     const cif = v2price + v2transport;
-    const customs = cif * 0.10;
+    const customs = v2price * 0.10;
     const excise = computeExcise({ cc: v2cc, ageYears: v2age, isNewUnregistered: false, fuel: v2fuel });
-    const vatBase = cif + customs + excise;
+    const vatBase = v2price + customs + excise;
     const vat = vatBase * 0.18;
     const reg = 50;
     const arrival = cif + customs + excise + vat + reg;
@@ -2187,7 +2187,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                   <div style={{ borderTop: `1px solid ${C.line}`, paddingTop: 14, display: "flex", flexDirection: "column", gap: 10 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{ fontSize: 14, fontWeight: 800, color: C.ink, flex: 1 }}>{t.customs}</span>
-                      <span style={{ fontSize: 12, color: C.muted, background: C.glass, borderRadius: 6, padding: "2px 8px" }}>10% · CIF</span>
+                      <span style={{ fontSize: 12, color: C.muted, background: C.glass, borderRadius: 6, padding: "2px 8px" }}>10% · Kaufpreis</span>
                       <span style={{ fontWeight: 800, color: C.ink }}>€ {fmt(calc.customs)}</span>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
