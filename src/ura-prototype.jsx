@@ -1660,20 +1660,21 @@ export default function App() {
 
   const calc = useMemo(() => {
     const cif = price + transport + insurance;
-    const customs = hasEur1 ? 0 : cif * TAX_CONFIG.customsRate;
+    // Steuerbasis = nur Kaufpreis (Transport/Versicherung werden nicht besteuert)
+    const taxBase = price;
+    const customs = hasEur1 ? 0 : taxBase * TAX_CONFIG.customsRate;
     const excise = computeExcise({ cc: engine, ageYears, isNewUnregistered: isNew, fuel });
-    const vatBase = cif + customs + excise;
+    const vatBase = taxBase + customs + excise;
     const vat = vatBase * TAX_CONFIG.vatRate;
     const importTaxes = customs + excise + vat;
     const reg = TAX_CONFIG.ecoTax + TAX_CONFIG.roadTax;
     const arrival = cif + importTaxes + reg;
     const toState = customs + excise + vat + reg;
     const vatRefund = price * (ORIGIN[origin]?.vatRefund || 0);
-    const catalogCif = catalogValue ? (catalogValue + transport + insurance) : null;
-    const catalogCustoms = catalogCif && !hasEur1 ? catalogCif * TAX_CONFIG.customsRate : 0;
-    const catalogVatBase = catalogCif ? catalogCif + catalogCustoms + excise : null;
+    const catalogCustoms = catalogValue && !hasEur1 ? catalogValue * TAX_CONFIG.customsRate : 0;
+    const catalogVatBase = catalogValue ? catalogValue + catalogCustoms + excise : null;
     const catalogVat = catalogVatBase ? catalogVatBase * TAX_CONFIG.vatRate : 0;
-    const catalogArrival = catalogCif ? catalogCif + catalogCustoms + excise + catalogVat + reg : null;
+    const catalogArrival = catalogValue ? (catalogValue + transport + insurance) + catalogCustoms + excise + catalogVat + reg : null;
     return { cif, customs, excise, vat, vatBase, importTaxes, reg, arrival, toState, vatRefund, catalogArrival };
   }, [price, transport, insurance, engine, ageYears, isNew, fuel, hasEur1, catalogValue, origin]);
 
@@ -1803,7 +1804,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
 
   const rows = [
     { label: t.cif, val: calc.cif, icon: <Car size={15} />, strong: true },
-    { label: t.customs, val: calc.customs, hint: hasEur1 ? "0% · EUR.1" : "10% · CIF" },
+    { label: t.customs, val: calc.customs, hint: hasEur1 ? "0% · EUR.1" : "10% · Kaufpreis" },
     { label: t.excise, val: calc.excise, hint: fuel === "ev" ? t.evExciseNote : t.exciseNote, flag: true },
     { label: t.vat(fmt(calc.vatBase)), val: calc.vat },
   ];
@@ -1819,7 +1820,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
   const costRows = [
     { label: t.catalogBuy, val: price, color: SEG_COLORS[0], strong: true },
     { label: lang==="de"?"Transport + Versicherung":lang==="sq"?"Transport + Sigurimi":lang==="sr"?"Transport + Osiguranje":"Transport + Insurance", val: (transport||0)+(insurance||0), color: SEG_COLORS[1] },
-    { label: t.customs, val: calc.customs, color: SEG_COLORS[2], hint: hasEur1?"0% · EUR.1":"10% · CIF" },
+    { label: t.customs, val: calc.customs, color: SEG_COLORS[2], hint: hasEur1?"0% · EUR.1":"10% · Kaufpreis" },
     { label: t.excise, val: calc.excise, color: SEG_COLORS[3], hint: fuel==="ev"?t.evExciseNote:t.exciseNote, flag: true },
     { label: t.vat(fmt(calc.vatBase)), val: calc.vat, color: SEG_COLORS[4] },
     { label: lang==="de"?"Anmeldung":lang==="sq"?"Regjistrimi":lang==="sr"?"Registracija":"Registration", val: calc.reg, color: SEG_COLORS[5] },
