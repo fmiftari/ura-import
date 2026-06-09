@@ -1047,6 +1047,7 @@ function SharePanel({ t, make, model, year, arrival, price, lang }) {
   const waUrl = `https://wa.me/?text=${encoded}`;
   const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodeURIComponent(text)}`;
   const liUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
+  const viberUrl = `viber://forward?text=${encoded}`;
 
   const nativeShare = async () => {
     if (navigator.share) {
@@ -1112,6 +1113,11 @@ function SharePanel({ t, make, model, year, arrival, price, lang }) {
         {iconBtn("#0A66C2", null, liUrl, (
           <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
         ), "LinkedIn")}
+
+        {/* Viber */}
+        {iconBtn("#7360F2", null, viberUrl, (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M11.993 0h-.002C5.3 0 0 5.3 0 11.993c0 2.866.998 5.496 2.651 7.56L.918 24l4.573-1.695a11.944 11.944 0 006.5 1.913c6.694 0 11.994-5.3 11.994-11.993C23.985 5.537 18.686.238 11.993 0zm6.27 16.658c-.26.733-.965 1.34-1.778 1.52-.474.108-.969.13-1.457.05-.505-.082-1.003-.215-1.49-.39a14.41 14.41 0 01-5.813-4.396 8.22 8.22 0 01-1.65-3.28c-.174-.847-.037-1.75.525-2.41.28-.327.606-.424.875-.424h.612c.227 0 .46.008.65.47.228.55.775 1.9.843 2.04.068.14.114.303.02.483-.09.178-.136.29-.27.445-.134.155-.282.345-.402.464-.136.13-.277.271-.12.532a7.84 7.84 0 001.437 1.786 7.478 7.478 0 002.079 1.28c.264.13.418.109.573-.066.155-.174.662-.77.838-1.037.174-.267.348-.222.586-.134.238.089 1.51.712 1.769.843.26.13.433.195.497.304.063.108.063.63-.198 1.32z"/></svg>
+        ), "Viber")}
 
         {/* Instagram */}
         {iconBtn("linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)", igShare, null, (
