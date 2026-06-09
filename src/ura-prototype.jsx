@@ -1452,6 +1452,33 @@ function ToolsMode({ lang, C, fmt }) {
 
 
 // ─── MAIN APP ────────────────────────────────────────────────────────────────
+
+function ResultsDonut({ segments, total }) {
+  const R = 48, cx = 60, cy = 60;
+  const circ = 2 * Math.PI * R;
+  const GAP = 2.5;
+  let px = 0;
+  const arcs = segments.map((s) => {
+    const len = Math.max(0, (s.val / total) * circ - GAP);
+    const arc = { ...s, len, off: circ / 4 - px };
+    px += (s.val / total) * circ;
+    return arc;
+  }).filter(a => a.len > 1);
+  return (
+    <svg width={120} height={120} viewBox="0 0 120 120" style={{ display: "block", flexShrink: 0 }}>
+      <circle cx={cx} cy={cy} r={R} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={13} />
+      {arcs.map((a, i) => (
+        <circle key={i} cx={cx} cy={cy} r={R} fill="none"
+          stroke={a.color} strokeWidth={13}
+          strokeDasharray={`${a.len} ${circ}`}
+          strokeDashoffset={a.off}
+          style={{ transition: "stroke-dasharray .5s ease" }}
+        />
+      ))}
+    </svg>
+  );
+}
+
 export default function App() {
   const [lang, setLang] = useState("sq");
   const t = T[lang];
@@ -1764,6 +1791,14 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
     @media (hover: hover) {
       .card:hover { box-shadow: 0 28px 70px -20px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.06); }
     }
+
+    @media print {
+      .ura-page { background: #fff !important; padding: 10px !important; }
+      [data-print-hide] { display: none !important; }
+      .card { box-shadow: none !important; border: 1px solid #ddd !important; }
+      .ura-outer { max-width: 100% !important; }
+    }
+
   `;
 
   const rows = [
@@ -1772,6 +1807,23 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
     { label: t.excise, val: calc.excise, hint: fuel === "ev" ? t.evExciseNote : t.exciseNote, flag: true },
     { label: t.vat(fmt(calc.vatBase)), val: calc.vat },
   ];
+  const SEG_COLORS = ["#c9a65a","#6366f1","#f59e0b","#ef4444","#8b5cf6","#10b981"];
+  const costSegments = [
+    { val: price, color: SEG_COLORS[0] },
+    { val: (transport||0)+(insurance||0), color: SEG_COLORS[1] },
+    { val: calc.customs, color: SEG_COLORS[2] },
+    { val: calc.excise, color: SEG_COLORS[3] },
+    { val: calc.vat, color: SEG_COLORS[4] },
+    { val: calc.reg, color: SEG_COLORS[5] },
+  ].filter(s => s.val > 0);
+  const costRows = [
+    { label: t.catalogBuy, val: price, color: SEG_COLORS[0], strong: true },
+    { label: lang==="de"?"Transport + Versicherung":lang==="sq"?"Transport + Sigurimi":lang==="sr"?"Transport + Osiguranje":"Transport + Insurance", val: (transport||0)+(insurance||0), color: SEG_COLORS[1] },
+    { label: t.customs, val: calc.customs, color: SEG_COLORS[2], hint: hasEur1?"0% · EUR.1":"10% · CIF" },
+    { label: t.excise, val: calc.excise, color: SEG_COLORS[3], hint: fuel==="ev"?t.evExciseNote:t.exciseNote, flag: true },
+    { label: t.vat(fmt(calc.vatBase)), val: calc.vat, color: SEG_COLORS[4] },
+    { label: lang==="de"?"Anmeldung":lang==="sq"?"Regjistrimi":lang==="sr"?"Registracija":"Registration", val: calc.reg, color: SEG_COLORS[5] },
+  ].filter(r => r.val > 0);
 
   const tabs = [
     { id: "wizard",  label: lang==="de"?"Einfach":lang==="en"?"Easy":lang==="sq"?"Lehtë":"Lako",       icon: <Home size={15} /> },
@@ -1851,42 +1903,43 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
       </div>
     )}
     <div className="card ura-rise" style={{ padding: 0, overflow: "hidden", marginBottom: 14, animationDelay: ".24s" }}>
-      <div style={{ padding: "16px 18px 8px" }}>
-        {rows.map((r, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 0", borderBottom: i < rows.length - 1 ? `1px solid ${C.line}` : "none" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 9, paddingRight: 8 }}>
-              {r.icon && <span style={{ color: C.muted }}>{r.icon}</span>}
-              <span style={{ fontSize: 13.5, fontWeight: r.strong ? 700 : 600, color: C.ink }}>{r.label}</span>
-              {r.hint && <span style={{ fontSize: 10.5, color: r.flag ? (fuel === "ev" ? C.greenDeep : C.amber) : C.muted, fontWeight: 700, background: r.flag ? (fuel === "ev" ? C.blueSoft : C.amberSoft) : C.paper, padding: "2px 7px", borderRadius: 8, whiteSpace: "nowrap" }}>{r.hint}</span>}
-            </div>
-            <span style={{ fontSize: 14.5, fontWeight: 700, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>€ {fmt(r.val)}</span>
+      {/* Header: donut + animated total */}
+      <div style={{ display: "flex", alignItems: "center", gap: 18, padding: "18px 20px 14px", flexWrap: "wrap" }}>
+        {calc.arrival > 0 && <ResultsDonut segments={costSegments} total={calc.arrival} />}
+        <div style={{ flex: 1, minWidth: 140 }}>
+          <div style={{ fontSize: 10, fontWeight: 800, color: C.muted, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>{t.arrival}</div>
+          <div style={{ fontFamily: "'Fraunces',serif", fontWeight: 600, fontSize: "clamp(28px,4vw,38px)", color: C.ink, fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>€ {fmt(animatedTotal)}</div>
+          <div style={{ fontSize: 12, color: C.muted, fontWeight: 600, marginTop: 8 }}>{t.over(fmt(calc.arrival - price), fmt(calc.reg))}</div>
+        </div>
+      </div>
+      {/* Divider */}
+      <div style={{ height: 1, background: C.line, margin: "0 20px" }} />
+      {/* Enhanced cost rows */}
+      <div style={{ padding: "10px 20px 14px" }}>
+        {costRows.map((r, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "center", padding: "8px 0", borderBottom: i < costRows.length - 1 ? `1px solid ${C.line}` : "none" }}>
+            <div style={{ width: 9, height: 9, borderRadius: 2, background: r.color, flexShrink: 0, marginRight: 10 }} />
+            <span style={{ flex: 1, fontSize: 13, fontWeight: r.strong ? 700 : 600, color: C.ink }}>{r.label}</span>
+            {r.hint && <span style={{ fontSize: 10.5, color: r.flag ? (fuel==="ev"?C.greenDeep:C.amber) : C.muted, fontWeight: 700, background: r.flag ? (fuel==="ev"?C.blueSoft:C.amberSoft) : C.paper, padding: "2px 7px", borderRadius: 8, marginRight: 8, whiteSpace: "nowrap" }}>{r.hint}</span>}
+            <span style={{ fontSize: 13.5, fontWeight: 700, color: C.ink, fontVariantNumeric: "tabular-nums", minWidth: 72, textAlign: "right" }}>€ {fmt(r.val)}</span>
+            <span style={{ fontSize: 11, fontWeight: 800, color: r.color, minWidth: 34, textAlign: "right", opacity: 0.85 }}>{calc.arrival > 0 ? Math.round(r.val / calc.arrival * 100) : 0}%</span>
           </div>
         ))}
-        <div style={{ display: "flex", justifyContent: "space-between", padding: "11px 0 4px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 0 2px", borderTop: `1px solid ${C.line}`, marginTop: 2 }}>
           <span style={{ fontSize: 12.5, fontWeight: 700, color: C.muted }}>{t.importTaxes}</span>
           <span style={{ fontSize: 13, fontWeight: 800, fontVariantNumeric: "tabular-nums", color: C.muted }}>€ {fmt(calc.importTaxes)}</span>
         </div>
-        {/* Cost proportion bar */}
-        {calc.arrival > 0 && (() => {
-          const total = calc.arrival;
-          const segments = [
-            { val: price, color: C.blue, opacity: .85 },
-            { val: (transport || 0) + (insurance || 0), color: "#6366f1", opacity: .75 },
-            { val: calc.customs, color: "#f59e0b", opacity: .9 },
-            { val: calc.excise, color: "#ef4444", opacity: .85 },
-            { val: calc.vat, color: "#8b5cf6", opacity: .8 },
-            { val: calc.reg, color: C.greenDeep, opacity: .8 },
-          ].filter(s => s.val > 0);
-          return (
-            <div style={{ height: 8, borderRadius: 6, overflow: "hidden", display: "flex", margin: "6px 0 8px", gap: 1 }}>
-              {segments.map((s, i) => (
-                <div key={i} style={{ flex: s.val / total, background: s.color, opacity: s.opacity, minWidth: s.val / total > 0.01 ? 3 : 0 }} />
-              ))}
-            </div>
-          );
-        })()}
+        {/* Proportion bar */}
+        {calc.arrival > 0 && (
+          <div style={{ height: 6, borderRadius: 4, overflow: "hidden", display: "flex", margin: "8px 0 2px", gap: 1 }}>
+            {costSegments.map((s, i) => (
+              <div key={i} style={{ flex: s.val / calc.arrival, background: s.color, opacity: 0.75, minWidth: s.val/calc.arrival > 0.01 ? 3 : 0 }} />
+            ))}
+          </div>
+        )}
       </div>
-      <div style={{ background: `linear-gradient(135deg,#e6c878,${C.blue} 60%,${C.greenDeep})`, color: C.navy, padding: "20px 22px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      {/* Total gradient footer */}
+      <div style={{ background: `linear-gradient(135deg,#e6c878,${C.blue} 60%,${C.greenDeep})`, color: C.navy, padding: "18px 22px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
           <div style={{ fontSize: 10.5, fontWeight: 800, opacity: .7, letterSpacing: 1, textTransform: "uppercase" }}>{t.arrival}</div>
           <div style={{ fontSize: 12, opacity: .75, fontWeight: 700, marginTop: 3 }}>{t.over(fmt(calc.arrival - price), fmt(calc.reg))}</div>
@@ -1914,6 +1967,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
     <SavingsTips t={t} calc={calc} hasEur1={hasEur1} ageYears={ageYears} engine={engine} fuel={fuel} C={C} />
     <SharePanel t={t} make={make} model={model} year={year} arrival={calc.arrival} price={price} lang={lang} />
     <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
+      <button onClick={() => window.print()} style={{ flex: 1, background: C.glass, border: `1.5px solid ${C.line}`, borderRadius: 13, padding: "13px", fontFamily: "inherit", fontWeight: 700, fontSize: 13.5, color: C.ink, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>🖨️ PDF</button>
       <button onClick={downloadSummary} style={{ flex: 1, background: C.glass, border: `1.5px solid ${C.line}`, borderRadius: 13, padding: "13px", fontFamily: "inherit", fontWeight: 700, fontSize: 13.5, color: C.ink, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}><Download size={16} color={C.blue} /> {t.download}</button>
       <button onClick={resetAll} style={{ background: C.glass, border: `1.5px solid ${C.line}`, borderRadius: 13, padding: "13px 16px", fontFamily: "inherit", fontWeight: 700, fontSize: 13.5, color: C.muted, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, whiteSpace: "nowrap" }}><RotateCcw size={16} color={C.muted} /> {t.reset}</button>
     </div>
