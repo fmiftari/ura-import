@@ -249,7 +249,7 @@ const T = {
     catalogLower: "Çmimi juaj i blerjes është mbi vlerën e katalogut.",
     vatRefundTitle: "Rimbursi i TVSH-së",
     vatRefundDesc: (pct, amt, country) => `Si blerës jashtë BE-së, mund të marrësh mbrapsht TVSH-në ${pct}% të ${country} (~€ ${amt}). Shiko numrin MRN në deklaratën EX-A.`,
-    cif: "Vlera CIF (bazë doganore)", customs: "Doganë", excise: "Akcizë",
+    cif: "Çmimi blerjes (bazë tatimore)", customs: "Doganë", excise: "Akcizë",
     vat: (b) => `TVSH (18% × ${b})`, importTaxes: "Totali i taksave të importit", catVal: "vlerë kategorie",
     exciseNote: "Vlerësim · konfirmo me TARIK",
     evExciseNote: "E konfirmuar (Ligji 03/L-109)",
@@ -301,7 +301,7 @@ const T = {
     catalogLower: "Vaša kupovna cena je iznad kataloške vrednosti.",
     vatRefundTitle: "Povrat PDV-a",
     vatRefundDesc: (pct, amt, country) => `Kao kupac van EU, možete dobiti povrat ${pct}% PDV-a iz ${country} (~€ ${amt}). Pratite MRN broj na EX-A deklaraciji.`,
-    cif: "CIF vrednost (carinska osnova)", customs: "Carina", excise: "Akciza",
+    cif: "Kupovna cena (poreska osnova)", customs: "Carina", excise: "Akciza",
     vat: (b) => `PDV (18% × ${b})`, importTaxes: "Ukupni uvozni porezi", catVal: "okvirno",
     exciseNote: "Procena · potvrdi u TARIK",
     evExciseNote: "Potvrđeno (Zakon 03/L-109)",
@@ -353,7 +353,7 @@ const T = {
     catalogLower: "Your purchase price exceeds the catalogue value.",
     vatRefundTitle: "VAT Refund",
     vatRefundDesc: (pct, amt, country) => `As a non-EU buyer, you can reclaim ${pct}% VAT from ${country} (~€ ${amt}). Track your MRN number on the EX-A export declaration.`,
-    cif: "CIF value (customs base)", customs: "Customs", excise: "Excise",
+    cif: "Purchase price (tax base)", customs: "Customs", excise: "Excise",
     vat: (b) => `VAT (18% × ${b})`, importTaxes: "Total import taxes", catVal: "category value",
     exciseNote: "Estimate · verify with TARIK",
     evExciseNote: "Confirmed (Law 03/L-109)",
@@ -405,7 +405,7 @@ const T = {
     catalogLower: "Ihr Kaufpreis liegt über dem Katalogwert.",
     vatRefundTitle: "MwSt.-Rückerstattung",
     vatRefundDesc: (pct, amt, country) => `Als Nicht-EU-Käufer kannst du die ${pct}% MwSt. aus ${country} zurückbekommen (~€ ${amt}). Tracke deine MRN-Nummer auf der EX-A Ausfuhranmeldung.`,
-    cif: "CIF-Wert (Zollbasis)", customs: "Zoll", excise: "Akzise",
+    cif: "Kaufpreis (Steuerbasis)", customs: "Zoll", excise: "Akzise",
     vat: (b) => `MwSt (18% × ${b})`, importTaxes: "Importsteuern gesamt", catVal: "Kategoriewert",
     exciseNote: "Schätzwert · mit TARIK prüfen",
     evExciseNote: "Bestätigt (Gesetz 03/L-109)",
@@ -1689,7 +1689,7 @@ export default function App() {
 <small>${t.locked(TAX_CONFIG.stand)}</small>
 <table>
 <tr><td>${t.catalogBuy}</td><td>€ ${fmt(price)}</td></tr>
-<tr><td>${t.cif}</td><td>€ ${fmt(calc.cif)}</td></tr>
+<tr><td>${t.cif}</td><td>€ ${fmt(price)}</td></tr>
 <tr><td>${t.customs}${hasEur1 ? " (EUR.1 · 0%)" : " (10%)"}</td><td>€ ${fmt(calc.customs)}</td></tr>
 <tr><td>${t.excise}</td><td>€ ${fmt(calc.excise)}</td></tr>
 <tr><td>${t.vat(fmt(calc.vatBase))}</td><td>€ ${fmt(calc.vat)}</td></tr>
@@ -1803,7 +1803,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
   `;
 
   const rows = [
-    { label: t.cif, val: calc.cif, icon: <Car size={15} />, strong: true },
+    { label: t.cif, val: price, icon: <Car size={15} />, strong: true },
     { label: t.customs, val: calc.customs, hint: hasEur1 ? "0% · EUR.1" : "10% · Kaufpreis" },
     { label: t.excise, val: calc.excise, hint: fuel === "ev" ? t.evExciseNote : t.exciseNote, flag: true },
     { label: t.vat(fmt(calc.vatBase)), val: calc.vat },
@@ -2182,7 +2182,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
                     <Car size={16} style={{ color: C.muted }} />
                     <span style={{ fontSize: 13, fontWeight: 700, color: C.muted }}>{t.cif}</span>
-                    <span style={{ marginLeft: "auto", fontWeight: 800, fontSize: 15, color: C.ink }}>€ {fmt(calc.cif)}</span>
+                    <span style={{ marginLeft: "auto", fontWeight: 800, fontSize: 15, color: C.ink }}>€ {fmt(price)}</span>
                   </div>
                   <div style={{ borderTop: `1px solid ${C.line}`, paddingTop: 14, display: "flex", flexDirection: "column", gap: 10 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
