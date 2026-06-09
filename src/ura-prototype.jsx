@@ -85,8 +85,16 @@ const WMI_BRANDS = {
   SAP:"Mazda(UK)",
   // Hyundai (CZ/TR)
   NM3:"Hyundai(TR)", TMAJ:"Hyundai(CZ)",
-  // Kia zusätzlich
+  // Korea (Hyundai / Kia / Genesis / SsangYong / KGM)
+  KMH:"Hyundai", KME:"Hyundai", KMF:"Hyundai", KMJ:"Hyundai", KMT:"Hyundai",
+  KNA:"Kia", KNB:"Kia", KNC:"Kia", KND:"Kia", KNE:"Kia",
+  KM8:"Hyundai", KMG:"Hyundai",
+  KNM:"Kia", KNF:"Kia",
   U5Y:"Kia(SK)", U6Y:"Kia(SK)",
+  // Genesis (Hyundai Luxusmarke)
+  KMT:"Genesis",
+  // SsangYong / KGM
+  PNA:"SsangYong", PNB:"SsangYong", PNC:"SsangYong",
   // Volvo Cars
   YV2:"Volvo", YV3:"Volvo",
   // USA
@@ -150,6 +158,20 @@ const DEMO_VEHICLES = {
   "C3":           { make: "Citroën",    model: "C3 1.2 PureTech",      category: "car", cc: 1199, fuel: "petrol",  euro: 6, year: 2020 },
   "I30":          { make: "Hyundai",    model: "i30 1.5 DPF",          category: "car", cc: 1482, fuel: "petrol",  euro: 6, year: 2021 },
   "CEED":         { make: "Kia",        model: "Ceed 1.6 CRDi",        category: "car", cc: 1598, fuel: "diesel",  euro: 6, year: 2019 },
+  // Korea-Import (Hyundai / Kia / SsangYong / Genesis)
+  "TUCSON":       { make: "Hyundai",    model: "Tucson 1.6 T-GDI",     category: "car", cc: 1591, fuel: "petrol",  euro: 6, year: 2021 },
+  "KONA":         { make: "Hyundai",    model: "Kona 1.0 T-GDI",       category: "car", cc: 998,  fuel: "petrol",  euro: 6, year: 2021 },
+  "ELANTRA":      { make: "Hyundai",    model: "Elantra 1.6 MPi",      category: "car", cc: 1591, fuel: "petrol",  euro: 6, year: 2021 },
+  "IONIQ5":       { make: "Hyundai",    model: "IONIQ 5",              category: "car", cc: 0,    fuel: "ev",      euro: 6, year: 2022 },
+  "IONIQ6":       { make: "Hyundai",    model: "IONIQ 6",              category: "car", cc: 0,    fuel: "ev",      euro: 6, year: 2023 },
+  "SPORTAGE":     { make: "Kia",        model: "Sportage 1.6 CRDi",    category: "car", cc: 1598, fuel: "diesel",  euro: 6, year: 2021 },
+  "STONIC":       { make: "Kia",        model: "Stonic 1.0 T-GDI",     category: "car", cc: 998,  fuel: "petrol",  euro: 6, year: 2021 },
+  "NIRO":         { make: "Kia",        model: "Niro 1.6 GDi Hybrid",  category: "car", cc: 1580, fuel: "hybrid",  euro: 6, year: 2021 },
+  "EV6":          { make: "Kia",        model: "EV6",                  category: "car", cc: 0,    fuel: "ev",      euro: 6, year: 2022 },
+  "SORENTO":      { make: "Kia",        model: "Sorento 2.2 CRDi",     category: "car", cc: 2199, fuel: "diesel",  euro: 6, year: 2020 },
+  "REXTON":       { make: "SsangYong",  model: "Rexton 2.2 XDi",       category: "car", cc: 2157, fuel: "diesel",  euro: 6, year: 2020 },
+  "KORANDO":      { make: "SsangYong",  model: "Korando 1.5 T-GDI",    category: "car", cc: 1497, fuel: "petrol",  euro: 6, year: 2021 },
+  "GV70":         { make: "Genesis",    model: "GV70 2.5 T-GDI",       category: "car", cc: 2497, fuel: "petrol",  euro: 6, year: 2022 },
 };
 
 const POPULAR_MODELS = [
@@ -177,6 +199,7 @@ const ORIGIN = {
   BE: { flag:"🇧🇪", sq:"Belgjikë", sr:"Belgija", en:"Belgium", de:"Belgien", vatRefund:0.21 },
   FR: { flag:"🇫🇷", sq:"Francë", sr:"Francuska", en:"France", de:"Frankreich", vatRefund:0.20 },
   IT: { flag:"🇮🇹", sq:"Itali", sr:"Italija", en:"Italy", de:"Italien", vatRefund:0.22 },
+  KR: { flag:"🇰🇷", sq:"Koreja e Jugut", sr:"Južna Koreja", en:"South Korea", de:"Südkorea", vatRefund:0.10 },
 };
 const originName = (k, lang) => ORIGIN[k] ? `${ORIGIN[k].flag} ${ORIGIN[k][lang] || ORIGIN[k].en}` : k;
 const FUEL = {
@@ -412,7 +435,7 @@ const T = {
 };
 
 const fmt = (n) => new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(Math.round(n || 0));
-const transportByOrigin = { DE: 650, CH: 720, AT: 600, NL: 780, BE: 760, FR: 800, IT: 750 };
+const transportByOrigin = { DE: 650, CH: 720, AT: 600, NL: 780, BE: 760, FR: 800, IT: 750, KR: 1400 };
 const NOW_YEAR = 2026;
 
 function ccBand(cc) { return cc <= 2000 ? "le2000" : cc <= 3000 ? "le3000" : "gt3000"; }
@@ -2025,7 +2048,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                   </div>
                 )}
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
-                  {["SANDERO","GOLF7TDI","P308","BMW320D","OCTAVIA","CAPTUR","TESLA3","SPRINTER313"].map((k) => (
+                  {["SANDERO","TUCSON","SPORTAGE","GOLF7TDI","P308","BMW320D","EV6","IONIQ5","OCTAVIA","CAPTUR"].map((k) => (
                     <button key={k} onClick={() => { setIdent(k); recognize(k); }} style={{ background: C.glass, border: `1px solid ${C.blue}`, borderRadius: 20, padding: "6px 12px", fontFamily: "inherit", fontSize: 11.5, fontWeight: 700, color: C.blue, cursor: "pointer", letterSpacing: .5 }}>{k}</button>
                   ))}
                 </div>
@@ -2038,14 +2061,19 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                   <div><label style={lbl}>{t.model}</label><input style={inputBox} value={model} onChange={(e) => setModel(e.target.value)} /></div>
                         <div><label style={lbl}>{t.engine}</label><input style={errors.engine ? inputErr : inputBox} type="number" value={engine} onChange={(e) => { const v = +e.target.value; setEngine(v); validate("engine", v); }} />{errors.engine && <div style={{ fontSize: 11, color: C.red, marginTop: 4 }}>{errors.engine}</div>}</div>
                   <div><label style={lbl}>{t.fuel}</label><Select label={t.fuel} value={fuel} onChange={(e) => setFuel(e.target.value)}><option value="petrol">{FUEL.petrol[lang]}</option><option value="diesel">{FUEL.diesel[lang]}</option><option value="hybrid">{FUEL.hybrid[lang]}</option><option value="ev">{FUEL.ev[lang]}</option></Select></div>
-                  <div><label style={lbl}>{t.origin}</label><Select label={t.origin} value={origin} onChange={(e) => setOrigin(e.target.value)}>{Object.keys(ORIGIN).map(k => <option key={k} value={k}>{originName(k, lang)}</option>)}</Select></div>
+                  <div><label style={lbl}>{t.origin}</label><Select label={t.origin} value={origin} onChange={(e) => { setOrigin(e.target.value); if (e.target.value === "KR") setHasEur1(false); }}>{Object.keys(ORIGIN).map(k => <option key={k} value={k}>{originName(k, lang)}</option>)}</Select></div>
                   <div><label style={lbl}>{t.euro}</label><input style={inputBox} type="number" min={1} max={7} value={euro} onChange={(e) => setEuro(+e.target.value)} /></div>
                   <div><label style={lbl}>{t.hs}</label><input style={inputBox} value={hs} onChange={(e) => setHs(e.target.value)} /></div>
                 </div>
                 <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 8 }}>
-                  <Toggle on={hasEur1} set={setHasEur1} label={t.fEur1} />
+                  {origin !== "KR" && <Toggle on={hasEur1} set={setHasEur1} label={t.fEur1} />}
                   <Toggle on={isNew} set={setIsNew} label={t.fNew} />
                 </div>
+                {origin === "KR" && (
+                  <div style={{ marginTop: 8, fontSize: 11.5, color: "#f59e0b", fontWeight: 600, background: "#f59e0b12", borderRadius: 10, padding: "7px 11px" }}>
+                    🇰🇷 {lang === "de" ? "Korea-Import: kein EUR.1 — 10% Zoll gilt" : lang === "sq" ? "Import nga Koreja: pa EUR.1 — zbatohet doganë 10%" : lang === "sr" ? "Uvoz iz Koreje: bez EUR.1 — važi carina 10%" : "Korea import: EUR.1 not applicable — 10% customs applies"}
+                  </div>
+                )}
               </div>
               <div className="card ura-rise" style={{ padding: 18, marginBottom: 16, animationDelay: ".22s" }}>
                 <div className="form-grid">
@@ -2164,4 +2192,3 @@ function Toggle({ on, set, label }) {
     </button>
   );
 }
-      
