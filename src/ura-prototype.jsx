@@ -2356,6 +2356,18 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                     <span style={{ fontSize: 13, fontWeight: 700, color: C.muted }}>{t.cif}</span>
                     <span style={{ marginLeft: "auto", fontWeight: 800, fontSize: 15, color: C.ink }}>€ {fmt(price)}</span>
                   </div>
+                  {((transport||0)+(insurance||0)) > 0 && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                    <Truck size={16} style={{ color: C.muted }} />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: C.muted }}>
+                      {lang==="de"?"Transport + Versicherung":lang==="sq"?"Transport + Sigurimi":lang==="sr"?"Transport + Osiguranje":"Transport + Insurance"}
+                    </span>
+                    <span style={{ fontSize: 11, color: C.muted, background: C.glass, borderRadius: 6, padding: "2px 8px" }}>
+                      {lang==="de"?"0% · nicht besteuert":lang==="sq"?"0% · pa tatim":lang==="sr"?"0% · bez poreza":"0% · not taxed"}
+                    </span>
+                    <span style={{ marginLeft: "auto", fontWeight: 800, fontSize: 15, color: C.ink }}>€ {fmt((transport||0)+(insurance||0))}</span>
+                  </div>
+                  )}
                   <div style={{ borderTop: `1px solid ${C.line}`, paddingTop: 14, display: "flex", flexDirection: "column", gap: 10 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{ fontSize: 14, fontWeight: 800, color: C.ink, flex: 1 }}>{t.customs}</span>
