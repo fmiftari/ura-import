@@ -2029,7 +2029,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
           {destCountry !== "XK" && (
             <div style={{ fontSize: 12.5, color: C.blue, fontWeight: 700, marginTop: 4 }}>{t.currencyApprox(fmtLocal(calc.arrival, destCountry))}</div>
           )}
-          <div style={{ fontSize: 12, color: C.muted, fontWeight: 600, marginTop: 8 }}>{t.over(fmt(calc.arrival - price), fmt(calc.reg))}</div>
+          <div style={{ fontSize: 12, color: C.muted, fontWeight: 600, marginTop: 8 }}>{t.over(fmt(calc.arrival - price - calc.reg), fmt(calc.reg))}</div>
         </div>
       </div>
       {/* Divider */}
@@ -2062,7 +2062,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
       <div style={{ background: `linear-gradient(135deg,#e6c878,${C.blue} 60%,${C.greenDeep})`, color: C.navy, padding: "18px 22px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
           <div style={{ fontSize: 10.5, fontWeight: 800, opacity: .7, letterSpacing: 1, textTransform: "uppercase" }}>{t.arrival}</div>
-          <div style={{ fontSize: 12, opacity: .75, fontWeight: 700, marginTop: 3 }}>{t.over(fmt(calc.arrival - price), fmt(calc.reg))}</div>
+          <div style={{ fontSize: 12, opacity: .75, fontWeight: 700, marginTop: 3 }}>{t.over(fmt(calc.arrival - price - calc.reg), fmt(calc.reg))}</div>
         </div>
         <div style={{ fontFamily: "'Fraunces',serif", fontWeight: 600, fontSize: "clamp(26px,3.5vw,36px)", fontVariantNumeric: "tabular-nums" }}>€ {fmt(animatedTotal)}</div>
       </div>
@@ -2352,7 +2352,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                 </div>
                 <div style={{ background: `linear-gradient(135deg,#1a2236,#0f172a)`, borderRadius: "0 0 22px 22px", padding: "18px 20px" }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>{t.arrival}</div>
-                  <div style={{ fontSize: 11.5, color: C.muted, marginBottom: 8 }}>{t.over(fmt(calc.importTaxes), fmt(calc.reg))}</div>
+                  <div style={{ fontSize: 11.5, color: C.muted, marginBottom: 8 }}>{t.over(fmt(calc.arrival - price - calc.reg), fmt(calc.reg))}</div>
                   <div style={{ fontFamily: "'Fraunces',serif", fontWeight: 700, fontSize: 46, color: C.blue, letterSpacing: -1 }}>€ {fmt(Math.round(animatedTotal))}</div>
                   {destCountry !== "XK" && (
                     <div style={{ fontSize: 13, color: C.muted, fontWeight: 700, marginTop: 4 }}>{t.currencyApprox(fmtLocal(calc.arrival, destCountry))}</div>
