@@ -31,6 +31,20 @@ const TAX_CONFIG = {
   officialSources: { tarik: "https://dogana.rks-gov.net/", label: "Tarifa e Integruar e Kosovës (TARIK)" },
 };
 
+// Albania (Shqipëri) — kosto importi automjeti, 2026
+// Burime: dogana.gov.al, DPSHTRR, eurofast.eu Albania Tax Card 2025
+const ALBANIA_TAX_CONFIG = {
+  customsRate: 0,        // Doganë 0% për automjete
+  vatRate: 0.20,         // TVSH 20% mbi vlerën CIF
+  regFee: 75,            // Regjistrim DPSHTRR ~7.500 ALL
+  maxAgeYears: 10,       // Ndalohet importi i veturave >10 vjeç
+  minEuro: 4,            // Minimumi standard emetimi Euro 4
+  luxuryEngineCC: 3000,  // Cilindrata mbi të cilën zbatohet taksa e luksit
+  luxuryValueEUR: 48000, // ~5.000.000 ALL
+  luxuryRegTax: 700,     // Taksë regjistrimi fillestare për veturat luksoze (~70.000 ALL)
+  officialSources: { tarik: "https://dogana.gov.al/", label: "Dogana e Shqipërisë / DPSHTRR" },
+};
+
 // ─── WMI → Hersteller (lokale Erkennung, kein API nötig) ─────────────────────
 const WMI_BRANDS = {
   // Deutschland
@@ -245,6 +259,10 @@ const T = {
     catUnverified: "Kufiri i moshës për këtë kategori duhet verifikuar me ligjin 05/L-132 / Doganën.",
     catalogBase: "Baza e doganimit", catalogBuy: "Çmimi juaj i blerjes", catalogVal: "Vlera e katalogut të doganës (vlerësim)",
     catalogWarning: "⚠ Kujdes: Dogana mund të tatojë çmimin e katalogut të saj, jo çmimin tuaj të blerjes. Konfirmo me Doganën.",
+    catalogCost: "Kosto me katalog:",
+    destCountry: "Vendi i destinacionit", destXK: "🇽🇰 Kosovë", destAL: "🇦🇱 Shqipëri",
+    alInfo: "Shqipëri: Doganë 0%, TVSH 20% mbi vlerën CIF (çmim + transport + sigurim). Mosha max. e lejuar: 10 vjet, minimumi Euro 4.",
+    alLuxuryNote: "Veturë luksoze (≥3000cc ose ≥€48.000): + taksë regjistrimi fillestare ~€700.",
     catalogHigher: (diff) => `Vlera e katalogut (~€ ${diff}) mund të jetë MBI çmimin tuaj.`,
     catalogLower: "Çmimi juaj i blerjes është mbi vlerën e katalogut.",
     vatRefundTitle: "Rimbursi i TVSH-së",
@@ -297,6 +315,10 @@ const T = {
     catUnverified: "Starosnu granicu za ovu kategoriju proveriti sa zakonom 05/L-132 / Carinom.",
     catalogBase: "Osnova za ocarinjenje", catalogBuy: "Vaša kupovna cena", catalogVal: "Kataloška vrednost carine (procena)",
     catalogWarning: "⚠ Pažnja: Carina može oporezovati katalošku vrednost. Potvrdite sa Carinom.",
+    catalogCost: "Cena po katalogu:",
+    destCountry: "Zemlja odredišta", destXK: "🇽🇰 Kosovo", destAL: "🇦🇱 Albanija",
+    alInfo: "Albanija: Carina 0%, PDV 20% na CIF vrednost (cena + transport + osiguranje). Maks. starost: 10 godina, minimum Euro 4.",
+    alLuxuryNote: "Luksuzno vozilo (≥3000ccm ili ≥€48.000): + početna registraciona taksa ~€700.",
     catalogHigher: (diff) => `Kataloška vrednost (~€ ${diff}) može biti IZNAD vaše cene.`,
     catalogLower: "Vaša kupovna cena je iznad kataloške vrednosti.",
     vatRefundTitle: "Povrat PDV-a",
@@ -349,6 +371,10 @@ const T = {
     catUnverified: "Age limit for this category must be verified with Law 05/L-132 / Customs.",
     catalogBase: "Customs tax base", catalogBuy: "Your purchase price", catalogVal: "Customs catalogue value (estimate)",
     catalogWarning: "⚠ Important: Kosovo Customs may tax their own catalogue value. Confirm with Customs.",
+    catalogCost: "Cost with catalogue:",
+    destCountry: "Destination country", destXK: "🇽🇰 Kosovo", destAL: "🇦🇱 Albania",
+    alInfo: "Albania: 0% customs duty, 20% VAT on CIF value (price + transport + insurance). Max. age: 10 years, minimum Euro 4.",
+    alLuxuryNote: "Luxury vehicle (≥3000cc or ≥€48,000): + initial registration tax ~€700.",
     catalogHigher: (diff) => `Catalogue value (~€ ${diff}) may be ABOVE your price.`,
     catalogLower: "Your purchase price exceeds the catalogue value.",
     vatRefundTitle: "VAT Refund",
@@ -401,6 +427,10 @@ const T = {
     catUnverified: "Altersgrenze für diese Kategorie mit Gesetz 05/L-132 / Zoll prüfen.",
     catalogBase: "Zollbemessungsgrundlage", catalogBuy: "Ihr Kaufpreis", catalogVal: "Zoll-Katalogwert (Schätzung)",
     catalogWarning: "⚠ Achtung: Der Kosovo-Zoll kann seinen eigenen Katalogwert besteuern. Beim Zoll bestätigen.",
+    catalogCost: "Kosten mit Katalogwert:",
+    destCountry: "Zielland", destXK: "🇽🇰 Kosovo", destAL: "🇦🇱 Albanien",
+    alInfo: "Albanien: 0% Zoll, 20% MwSt. auf den CIF-Wert (Preis + Transport + Versicherung). Max. Alter: 10 Jahre, mind. Euro 4.",
+    alLuxuryNote: "Luxusfahrzeug (≥3000ccm oder ≥€48.000): + einmalige Zulassungssteuer ~€700.",
     catalogHigher: (diff) => `Katalogwert (~€ ${diff}) kann ÜBER Ihrem Preis liegen.`,
     catalogLower: "Ihr Kaufpreis liegt über dem Katalogwert.",
     vatRefundTitle: "MwSt.-Rückerstattung",
@@ -436,7 +466,7 @@ const T = {
 
 const fmt = (n) => new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(Math.round(n || 0));
 const transportByOrigin = { DE: 650, CH: 720, AT: 600, NL: 780, BE: 760, FR: 800, IT: 750, KR: 1400 };
-const NOW_YEAR = 2026;
+const NOW_YEAR = new Date().getFullYear();
 
 function ccBand(cc) { return cc <= 2000 ? "le2000" : cc <= 3000 ? "le3000" : "gt3000"; }
 
@@ -513,7 +543,7 @@ function WizardMode({ t, lang, C, fmt }) {
     { label: "Anderes Auto", cc: 1600, fuel: "diesel", emoji: "🔍" },
   ];
 
-  const ageYears = Math.max(0, 2026 - wYear);
+  const ageYears = Math.max(0, NOW_YEAR - wYear);
   const wCalc = useMemo(() => {
     if (!wOrigin || !wModel) return null;
     const transport = wOrigin.transport;
@@ -763,7 +793,7 @@ function VergleichMode({ t, lang, C, fmt, calc, price, make, model, year, ageYea
   const [v2fuel, setV2fuel] = useState("diesel");
   const [v2transport, setV2transport] = useState(650);
 
-  const v2age = Math.max(0, 2026 - v2year);
+  const v2age = Math.max(0, NOW_YEAR - v2year);
   const v2calc = useMemo(() => {
     const cif = v2price + v2transport;
     const customs = v2price * 0.10;
@@ -1536,6 +1566,7 @@ export default function App() {
   const [engine, setEngine] = useState(1968);
   const [year, setYear] = useState(2018);
   const [origin, setOrigin] = useState("DE");
+  const [destCountry, setDestCountry] = useState("XK");
   const [fuel, setFuel] = useState("diesel");
   const [euro, setEuro] = useState(6);
   const [hs, setHs] = useState("8703 32");
@@ -1654,18 +1685,36 @@ export default function App() {
   const ageUnverified = TAX_CONFIG.ageLimitUnverified[category];
   const legal = useMemo(() => {
     const p = [];
-    if (ageYears > ageLimit) p.push(t.ageBad(ageYears, ageLimit));
-    if (euro < TAX_CONFIG.minEuro) p.push(t.euroBad(euro, TAX_CONFIG.minEuro));
+    if (destCountry === "AL") {
+      if (ageYears > ALBANIA_TAX_CONFIG.maxAgeYears) p.push(t.ageBad(ageYears, ALBANIA_TAX_CONFIG.maxAgeYears));
+      if (euro < ALBANIA_TAX_CONFIG.minEuro) p.push(t.euroBad(euro, ALBANIA_TAX_CONFIG.minEuro));
+    } else {
+      if (ageYears > ageLimit) p.push(t.ageBad(ageYears, ageLimit));
+      if (euro < TAX_CONFIG.minEuro) p.push(t.euroBad(euro, TAX_CONFIG.minEuro));
+    }
     return p;
-  }, [ageYears, euro, lang, ageLimit]);
+  }, [ageYears, euro, lang, ageLimit, destCountry]);
 
   const catalogValue = useMemo(() => {
-    if (isNew || engine <= 0) return null;
+    if (isNew || engine <= 0 || destCountry === "AL") return null;
     return computeCatalogValue({ cc: engine, ageYears });
-  }, [engine, ageYears, isNew]);
+  }, [engine, ageYears, isNew, destCountry]);
 
   const calc = useMemo(() => {
     const cif = price + transport + insurance;
+    if (destCountry === "AL") {
+      const customs = 0;
+      const excise = 0;
+      const vatBase = cif;
+      const vat = vatBase * ALBANIA_TAX_CONFIG.vatRate;
+      const importTaxes = customs + excise + vat;
+      const isLuxury = engine >= ALBANIA_TAX_CONFIG.luxuryEngineCC || price >= ALBANIA_TAX_CONFIG.luxuryValueEUR;
+      const reg = ALBANIA_TAX_CONFIG.regFee + (isLuxury ? ALBANIA_TAX_CONFIG.luxuryRegTax : 0);
+      const arrival = cif + importTaxes + reg;
+      const toState = customs + excise + vat + reg;
+      const vatRefund = price * (ORIGIN[origin]?.vatRefund || 0);
+      return { cif, customs, excise, vat, vatBase, importTaxes, reg, arrival, toState, vatRefund, catalogArrival: null, isLuxury };
+    }
     // Steuerbasis = nur Kaufpreis (Transport/Versicherung werden nicht besteuert)
     const taxBase = price;
     const customs = hasEur1 ? 0 : taxBase * TAX_CONFIG.customsRate;
@@ -1682,7 +1731,7 @@ export default function App() {
     const catalogVat = catalogVatBase ? catalogVatBase * TAX_CONFIG.vatRate : 0;
     const catalogArrival = catalogValue ? (catalogValue + transport + insurance) + catalogCustoms + excise + catalogVat + reg : null;
     return { cif, customs, excise, vat, vatBase, importTaxes, reg, arrival, toState, vatRefund, catalogArrival };
-  }, [price, transport, insurance, engine, ageYears, isNew, fuel, hasEur1, catalogValue, origin]);
+  }, [price, transport, insurance, engine, ageYears, isNew, fuel, hasEur1, catalogValue, origin, destCountry]);
 
   const animatedTotal = useCountUp(calc.arrival);
   const catalogHigher = catalogValue && (catalogValue > price);
@@ -1713,7 +1762,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
     setIdent(""); setRecMsg(null); setCategory("car"); setMake(""); setModel(""); setPrice(0);
     setTransport(0); setTransportTouched(true); setInsurance(0); setEngine(0);
     setYear(NOW_YEAR); setOrigin("DE"); setFuel("diesel"); setEuro(4);
-    setHs(""); setIsNew(false); setHasEur1(false); setErrors({});
+    setHs(""); setIsNew(false); setHasEur1(false); setErrors({}); setDestCountry("XK");
   };
 
   const inputBox = { width: "100%", padding: "12px 14px", borderRadius: 13, border: `1.5px solid ${C.line}`, fontSize: 15, fontWeight: 600, color: C.ink, outline: "none", background: C.glass, fontFamily: "inherit", boxSizing: "border-box" };
@@ -1871,7 +1920,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
         <span style={{ fontSize: 12, color: C.amber, fontWeight: 700, lineHeight: 1.45 }}>{t.catUnverified}</span>
       </div>
     )}
-    {origin === "KR" && !isNew && (
+    {origin === "KR" && !isNew && destCountry === "XK" && (
       <div style={{ marginBottom: 14, background: "rgba(59,130,246,0.08)", border: "1.5px solid rgba(59,130,246,0.25)", borderRadius: 14, padding: "11px 15px", display: "flex", gap: 9, alignItems: "flex-start" }}>
         <Info size={15} color="#3b82f6" style={{ flexShrink: 0, marginTop: 1 }} />
         <span style={{ fontSize: 12, color: "#3b82f6", fontWeight: 700, lineHeight: 1.5 }}>
@@ -2124,6 +2173,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
               </div>
               <div className="card ura-rise" style={{ padding: 18, marginBottom: 16, animationDelay: ".18s" }}>
                 <div className="form-grid">
+                  <div><label style={lbl}>{t.destCountry}</label><Select label={t.destCountry} value={destCountry} onChange={(e) => setDestCountry(e.target.value)}><option value="XK">{t.destXK}</option><option value="AL">{t.destAL}</option></Select></div>
                   <div><label style={lbl}>{t.category}</label><Select label={t.category} value={category} onChange={(e) => setCategory(e.target.value)}><option value="car">{t.catCar}</option><option value="van">{t.catVan}</option><option value="truck">{t.catTruck}</option><option value="moto">{t.catMoto}</option></Select></div>
                   <div><label style={lbl}>{t.year}</label><input style={errors.year ? inputErr : inputBox} type="number" value={year} onChange={(e) => { const v = +e.target.value; setYear(v); validate("year", v); }} />{errors.year && <div style={{ fontSize: 11, color: C.red, marginTop: 4 }}>{errors.year}</div>}</div>
                   <div><label style={lbl}>{t.make}</label><input style={inputBox} value={make} onChange={(e) => setMake(e.target.value)} /></div>
@@ -2135,7 +2185,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                   <div><label style={lbl}>{t.hs}</label><input style={inputBox} value={hs} onChange={(e) => setHs(e.target.value)} /></div>
                 </div>
                 <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 8 }}>
-                  {origin !== "KR" && <Toggle on={hasEur1} set={setHasEur1} label={t.fEur1} />}
+                  {origin !== "KR" && destCountry !== "AL" && <Toggle on={hasEur1} set={setHasEur1} label={t.fEur1} />}
                   <Toggle on={isNew} set={setIsNew} label={t.fNew} />
                 </div>
                 {origin === "KR" && (
@@ -2163,7 +2213,15 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                 <CheckCircle2 size={14} style={{ color: C.green, flexShrink: 0 }} />
                 <span style={{ fontSize: 12, fontWeight: 700, color: C.muted }}>{lang==="de" ? `Erfüllt Kriterien · ${ageYears} J. · Euro ${euro}` : lang==="sq" ? `Plotëson kriteret · ${ageYears} vjet · Euro ${euro}` : `Meets criteria · ${ageYears} yrs · Euro ${euro}`}</span>
               </div>
-              {origin === "KR" && !isNew && (
+              {destCountry === "AL" && (
+                <div style={{ marginBottom: 14, background: "rgba(16,185,129,0.08)", border: "1.5px solid rgba(16,185,129,0.25)", borderRadius: 14, padding: "11px 15px", display: "flex", gap: 9, alignItems: "flex-start" }}>
+                  <Info size={15} color="#10b981" style={{ flexShrink: 0, marginTop: 1 }} />
+                  <span style={{ fontSize: 12, color: "#10b981", fontWeight: 700, lineHeight: 1.5 }}>
+                    🇦🇱 {t.alInfo}{calc.isLuxury ? " " + t.alLuxuryNote : ""}
+                  </span>
+                </div>
+              )}
+              {origin === "KR" && !isNew && destCountry === "XK" && (
                 <div style={{ marginBottom: 14, background: "rgba(59,130,246,0.08)", border: "1.5px solid rgba(59,130,246,0.25)", borderRadius: 14, padding: "11px 15px", display: "flex", gap: 9, alignItems: "flex-start" }}>
                   <Info size={15} color="#3b82f6" style={{ flexShrink: 0, marginTop: 1 }} />
                   <span style={{ fontSize: 12, color: "#3b82f6", fontWeight: 700, lineHeight: 1.5 }}>
@@ -2180,7 +2238,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
               {showCatalog && catalogValue && origin !== "KR" && (
                 <div className="ura-rise" style={{ background: C.glass, border: `1px solid ${C.line}`, borderRadius: 14, padding: "14px 18px", marginBottom: 14 }}>
                   <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.6 }}>{t.catalogWarning}</div>
-                  {calc.catalogArrival && <div style={{ marginTop: 10, fontWeight: 700, color: C.ink, fontSize: 14 }}>{"Kosto me katalog:"} <span style={{ color: C.blue }}>€{fmt(calc.catalogArrival)}</span></div>}
+                  {calc.catalogArrival && <div style={{ marginTop: 10, fontWeight: 700, color: C.ink, fontSize: 14 }}>{t.catalogCost} <span style={{ color: C.blue }}>€{fmt(calc.catalogArrival)}</span></div>}
                 </div>
               )}
               <div className="card ura-rise" style={{ marginBottom: 14, animationDelay: ".05s" }}>
@@ -2193,14 +2251,16 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                   <div style={{ borderTop: `1px solid ${C.line}`, paddingTop: 14, display: "flex", flexDirection: "column", gap: 10 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{ fontSize: 14, fontWeight: 800, color: C.ink, flex: 1 }}>{t.customs}</span>
-                      <span style={{ fontSize: 12, color: C.muted, background: C.glass, borderRadius: 6, padding: "2px 8px" }}>10% · Kaufpreis</span>
+                      <span style={{ fontSize: 12, color: C.muted, background: C.glass, borderRadius: 6, padding: "2px 8px" }}>{destCountry === "AL" ? "0% · CIF" : (hasEur1 ? "0% · EUR.1" : "10% · Kaufpreis")}</span>
                       <span style={{ fontWeight: 800, color: C.ink }}>€ {fmt(calc.customs)}</span>
                     </div>
+                    {destCountry !== "AL" && (
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{ fontSize: 14, fontWeight: 800, color: C.ink, flex: 1 }}>{t.excise}</span>
                       <span style={{ fontSize: 11, color: "#f59e0b", background: "#f59e0b18", borderRadius: 6, padding: "2px 8px", fontWeight: 700 }}>{t.exciseNote}</span>
                       <span style={{ fontWeight: 800, color: C.ink }}>€ {fmt(calc.excise)}</span>
                     </div>
+                    )}
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{ fontSize: 14, fontWeight: 800, color: C.ink, flex: 1 }}>{typeof t.vat === "function" ? t.vat(fmt(calc.vatBase)) : t.vat}</span>
                       <span style={{ fontWeight: 800, color: C.ink }}>€ {fmt(calc.vat)}</span>
