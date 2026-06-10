@@ -529,6 +529,58 @@ function computeCatalogValue({ cc, ageYears }) {
   return Math.round(newPrice * factor);
 }
 
+// Einheitliche Import-Kostenberechnung für alle Zielländer (XK/AL/MK).
+// Wird vom Hauptrechner, Wizard- und Vergleichsmodus gemeinsam verwendet,
+// damit die Endbeträge in allen Modi konsistent und korrekt sind.
+function computeImportCost({ destCountry, price, transport = 0, insurance = 0, engine = 0, ageYears = 0, isNew = false, fuel = "diesel", hasEur1 = false, vatRefundRate = 0, catalogValue = null }) {
+  const cif = price + transport + insurance;
+  if (destCountry === "AL") {
+    const customs = 0;
+    const excise = 0;
+    const vatBase = cif;
+    const vat = vatBase * ALBANIA_TAX_CONFIG.vatRate;
+    const importTaxes = customs + excise + vat;
+    const isLuxury = engine >= ALBANIA_TAX_CONFIG.luxuryEngineCC || price >= ALBANIA_TAX_CONFIG.luxuryValueEUR;
+    const reg = ALBANIA_TAX_CONFIG.regFee + (isLuxury ? ALBANIA_TAX_CONFIG.luxuryRegTax : 0);
+    const arrival = cif + importTaxes + reg;
+    const toState = customs + excise + vat + reg;
+    const vatRefund = price * vatRefundRate;
+    return { cif, customs, excise, vat, vatBase, importTaxes, reg, arrival, toState, vatRefund, catalogArrival: null, isLuxury };
+  }
+  if (destCountry === "MK") {
+    const customs = hasEur1 ? cif * MK_TAX_CONFIG.customsRateEur1 : cif * MK_TAX_CONFIG.customsRate;
+    const dmvPct = engine <= 1500 ? MK_TAX_CONFIG.dmvRatesByEngine.le1500
+      : engine <= 2000 ? MK_TAX_CONFIG.dmvRatesByEngine.le2000
+      : engine <= 3000 ? MK_TAX_CONFIG.dmvRatesByEngine.le3000
+      : MK_TAX_CONFIG.dmvRatesByEngine.gt3000;
+    const excise = price * dmvPct; // DMV (Danok na motorni vozila) — vlerësim
+    const vatBase = cif + customs + excise;
+    const vat = vatBase * MK_TAX_CONFIG.vatRate;
+    const importTaxes = customs + excise + vat;
+    const reg = MK_TAX_CONFIG.regFee;
+    const arrival = cif + importTaxes + reg;
+    const toState = customs + excise + vat + reg;
+    const vatRefund = price * vatRefundRate;
+    return { cif, customs, excise, vat, vatBase, importTaxes, reg, arrival, toState, vatRefund, catalogArrival: null, isLuxury: false };
+  }
+  // Kosovo (XK) — Standard
+  const taxBase = price;
+  const customs = hasEur1 ? 0 : taxBase * TAX_CONFIG.customsRate;
+  const excise = computeExcise({ cc: engine, ageYears, isNewUnregistered: isNew, fuel });
+  const vatBase = taxBase + customs + excise;
+  const vat = vatBase * TAX_CONFIG.vatRate;
+  const importTaxes = customs + excise + vat;
+  const reg = TAX_CONFIG.ecoTax + TAX_CONFIG.roadTax;
+  const arrival = cif + importTaxes + reg;
+  const toState = customs + excise + vat + reg;
+  const vatRefund = price * vatRefundRate;
+  const catalogCustoms = catalogValue && !hasEur1 ? catalogValue * TAX_CONFIG.customsRate : 0;
+  const catalogVatBase = catalogValue ? catalogValue + catalogCustoms + excise : null;
+  const catalogVat = catalogVatBase ? catalogVatBase * TAX_CONFIG.vatRate : 0;
+  const catalogArrival = catalogValue ? (catalogValue + transport + insurance) + catalogCustoms + excise + catalogVat + reg : null;
+  return { cif, customs, excise, vat, vatBase, importTaxes, reg, arrival, toState, vatRefund, catalogArrival };
+}
+
 // URL state encoding / decoding
 function encodeState(state) {
   try {
@@ -571,6 +623,7 @@ function WizardMode({ t, lang, C, fmt }) {
   const [wModel, setWModel] = useState(null);
   const [wPrice, setWPrice] = useState(8000);
   const [wYear, setWYear] = useState(2020);
+  const [wDest, setWDest] = useState("XK");
 
   const ORIGINS_WIZARD = [
     { key: "DE", flag: "🇩🇪", label: "Deutschland", transport: 650, vat: 0.19 },
@@ -590,16 +643,14 @@ function WizardMode({ t, lang, C, fmt }) {
   const wCalc = useMemo(() => {
     if (!wOrigin || !wModel) return null;
     const transport = wOrigin.transport;
-    const cif = wPrice + transport;
-    const customs = wPrice * 0.10;
-    const excise = computeExcise({ cc: wModel.cc, ageYears, isNewUnregistered: false, fuel: wModel.fuel || "diesel" });
-    const vatBase = wPrice + customs + excise;
-    const vat = vatBase * 0.18;
-    const reg = 50;
-    const arrival = cif + customs + excise + vat + reg;
-    const vatRefund = wPrice * wOrigin.vat;
-    return { cif, customs, excise, vat, arrival, vatRefund, reg, transport };
-  }, [wOrigin, wModel, wPrice, wYear]);
+    const r = computeImportCost({
+      destCountry: wDest, price: wPrice, transport, insurance: 0,
+      engine: wModel.cc, ageYears, isNew: false, fuel: wModel.fuel || "diesel",
+      hasEur1: false, vatRefundRate: wOrigin.vat,
+    });
+    return { ...r, transport };
+  }, [wOrigin, wModel, wPrice, wYear, wDest]);
+  const wOverLimit = wDest !== "MK" && ageYears > 10;
 
   const stepLabels = WIZARD_STEPS[lang];
   const btnStyle = (active) => ({
@@ -621,6 +672,19 @@ function WizardMode({ t, lang, C, fmt }) {
       <div style={{ fontSize: 12, color: C.muted, fontWeight: 700, marginBottom: 6,
         textTransform: "uppercase", letterSpacing: 1 }}>
         {lang === "de" ? "Schritt" : lang === "en" ? "Step" : "Hapi"} {step + 1} / {stepLabels.length}
+      </div>
+
+      {/* Zielland */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 18 }}>
+        {["XK","AL","MK"].map(d => (
+          <button key={d} onClick={() => setWDest(d)}
+            style={{ flex: 1, padding: "8px 4px", border: `2px solid ${wDest===d?C.blue:C.line}`,
+              borderRadius: 12, cursor: "pointer", fontFamily: "inherit", fontWeight: 700,
+              fontSize: 12, background: wDest===d?C.blueSoft:C.glass, color: wDest===d?C.blue:C.muted,
+              transition: "all .2s" }}>
+            {d === "XK" ? t.destXK : d === "AL" ? t.destAL : t.destMK}
+          </button>
+        ))}
       </div>
 
       {/* Step 0 — Origin */}
@@ -715,7 +779,7 @@ function WizardMode({ t, lang, C, fmt }) {
           </div>
           <div style={{ textAlign: "center", fontSize: 14, color: C.muted, marginBottom: 16 }}>
             {ageYears} {lang === "de" ? "Jahre alt" : lang === "en" ? "years old" : "vjet"}
-            {ageYears > 10 ? " ⚠️ " + (lang === "de" ? "Nicht importierbar!" : "Not allowed!") : " ✓"}
+            {wDest !== "MK" && (wOverLimit ? " ⚠️ " + (lang === "de" ? "Nicht importierbar!" : "Not allowed!") : " ✓")}
           </div>
           <input type="range" min="2014" max="2026" step="1" value={wYear}
             onChange={e => setWYear(+e.target.value)}
@@ -730,12 +794,12 @@ function WizardMode({ t, lang, C, fmt }) {
               </button>
             ))}
           </div>
-          <button onClick={() => setStep(4)} disabled={ageYears > 10}
-            style={{ width: "100%", background: ageYears > 10 ? C.line : `linear-gradient(135deg,#e6c878,${C.blue})`,
-              color: ageYears > 10 ? C.muted : C.navy, border: "none", borderRadius: 14, padding: "16px",
+          <button onClick={() => setStep(4)} disabled={wOverLimit}
+            style={{ width: "100%", background: wOverLimit ? C.line : `linear-gradient(135deg,#e6c878,${C.blue})`,
+              color: wOverLimit ? C.muted : C.navy, border: "none", borderRadius: 14, padding: "16px",
               fontFamily: "inherit", fontWeight: 800, fontSize: 15,
-              cursor: ageYears > 10 ? "not-allowed" : "pointer" }}>
-            {ageYears > 10 ? (lang === "de" ? "Nicht importierbar" : "Not allowed") :
+              cursor: wOverLimit ? "not-allowed" : "pointer" }}>
+            {wOverLimit ? (lang === "de" ? "Nicht importierbar" : "Not allowed") :
               (lang === "de" ? "Kosten berechnen" : lang === "en" ? "Calculate costs" : "Kalkulo kostot")} →
           </button>
         </div>
@@ -749,7 +813,8 @@ function WizardMode({ t, lang, C, fmt }) {
               {wOrigin?.label} · {wModel?.label} · {wYear}
             </div>
             <h2 style={{ fontFamily: "'Fraunces',serif", fontSize: 22, fontWeight: 600, marginBottom: 4, color: C.ink }}>
-              {lang === "de" ? "Deine Ankunftskosten im Kosovo" : lang === "en" ? "Your landed cost in Kosovo" : "Kosto e mbërritjes në Kosovë"}
+              {(lang === "de" ? "Deine Ankunftskosten — " : lang === "en" ? "Your landed cost — " : "Kosto e mbërritjes — ")}
+              {wDest === "XK" ? t.destXK : wDest === "AL" ? t.destAL : t.destMK}
             </h2>
           </div>
 
@@ -762,6 +827,9 @@ function WizardMode({ t, lang, C, fmt }) {
             <div style={{ fontFamily: "'Fraunces',serif", fontSize: 52, fontWeight: 600, color: C.navy }}>
               € {fmt(wCalc.arrival)}
             </div>
+            {wDest !== "XK" && (
+              <div style={{ fontSize: 13, color: C.navy, opacity: .85, fontWeight: 700, marginTop: 2 }}>{t.currencyApprox(fmtLocal(wCalc.arrival, wDest))}</div>
+            )}
             <div style={{ fontSize: 13, color: C.navy, opacity: .7, marginTop: 4 }}>
               +€ {fmt(wCalc.arrival - wPrice)} {lang === "de" ? "über Kaufpreis" : "over purchase price"}
             </div>
@@ -770,9 +838,20 @@ function WizardMode({ t, lang, C, fmt }) {
           {[
             [lang === "de" ? "Kaufpreis" : "Purchase price", wPrice],
             [lang === "de" ? "Transport" : "Transport", wCalc.transport],
-            [lang === "de" ? "Zoll (10%)" : "Customs (10%)", wCalc.customs],
-            [lang === "de" ? "Akzise" : "Excise", wCalc.excise],
-            [lang === "de" ? "MwSt (18%)" : "VAT (18%)", wCalc.vat],
+            [
+              wDest === "AL" ? (lang === "de" ? "Zoll (0%)" : "Customs (0%)")
+                : wDest === "MK" ? (lang === "de" ? "Zoll (5%)" : "Customs (5%)")
+                : (lang === "de" ? "Zoll (10%)" : "Customs (10%)"),
+              wCalc.customs
+            ],
+            ...(wDest !== "AL" ? [[
+              wDest === "MK" ? t.mkExcise : (lang === "de" ? "Akzise" : "Excise"),
+              wCalc.excise
+            ]] : []),
+            [
+              wDest === "AL" ? (lang === "de" ? "MwSt (20%)" : "VAT (20%)") : (lang === "de" ? "MwSt (18%)" : "VAT (18%)"),
+              wCalc.vat
+            ],
             [lang === "de" ? "Anmeldung" : "Registration", wCalc.reg],
           ].map(([label, val], i) => (
             <div key={i} style={{ display: "flex", justifyContent: "space-between",
@@ -807,8 +886,8 @@ function WizardMode({ t, lang, C, fmt }) {
             </button>
           </div>
           <div style={{ marginTop: 12, fontSize: 11, color: C.muted, textAlign: "center", lineHeight: 1.5 }}>
-            {lang === "de" ? "Schätzung · Endbeträge bestätigt der kosovarische Zoll" :
-             "Estimate · Final amounts confirmed by Kosovo Customs"}
+            {lang === "de" ? "Schätzung · Endbeträge bestätigt die zuständige Zollbehörde" :
+             "Estimate · Final amounts confirmed by the relevant customs authority"}
           </div>
         </div>
       )}
@@ -827,7 +906,7 @@ function WizardMode({ t, lang, C, fmt }) {
 }
 
 // ─── VERGLEICH MODUS ─────────────────────────────────────────────────────────
-function VergleichMode({ t, lang, C, fmt, calc, price, make, model, year, ageYears }) {
+function VergleichMode({ t, lang, C, fmt, calc, price, make, model, year, ageYears, destCountry, hasEur1 }) {
   const [v2price, setV2price] = useState(10000);
   const [v2year, setV2year] = useState(2019);
   const [v2make, setV2make] = useState("BMW");
@@ -837,16 +916,11 @@ function VergleichMode({ t, lang, C, fmt, calc, price, make, model, year, ageYea
   const [v2transport, setV2transport] = useState(650);
 
   const v2age = Math.max(0, NOW_YEAR - v2year);
-  const v2calc = useMemo(() => {
-    const cif = v2price + v2transport;
-    const customs = v2price * 0.10;
-    const excise = computeExcise({ cc: v2cc, ageYears: v2age, isNewUnregistered: false, fuel: v2fuel });
-    const vatBase = v2price + customs + excise;
-    const vat = vatBase * 0.18;
-    const reg = 50;
-    const arrival = cif + customs + excise + vat + reg;
-    return { cif, customs, excise, vat, arrival, reg };
-  }, [v2price, v2transport, v2cc, v2fuel, v2year]);
+  const v2calc = useMemo(() => computeImportCost({
+    destCountry, price: v2price, transport: v2transport, insurance: 0,
+    engine: v2cc, ageYears: v2age, isNew: false, fuel: v2fuel, hasEur1, vatRefundRate: 0,
+  }), [v2price, v2transport, v2cc, v2fuel, v2age, destCountry, hasEur1]);
+  const destName = destCountry === "AL" ? t.destAL : destCountry === "MK" ? t.destMK : t.destXK;
 
   const inputStyle = { width: "100%", padding: "10px 12px", borderRadius: 10,
     border: `1px solid ${C.line}`, fontSize: 14, fontWeight: 600, color: C.ink,
@@ -883,11 +957,14 @@ function VergleichMode({ t, lang, C, fmt, calc, price, make, model, year, ageYea
           <div style={{ fontSize: 11, color: C.muted }}>Kaufpreis</div>
           <div style={{ fontSize: 16, fontWeight: 700 }}>€ {fmt(price)}</div>
           <div style={{ height: 1, background: C.line, margin: "10px 0" }} />
-          <div style={{ fontSize: 11, color: C.muted }}>Ankunft Kosovo</div>
+          <div style={{ fontSize: 11, color: C.muted }}>{lang==="de"?"Ankunft":"Landed cost"}: {destName}</div>
           <div style={{ fontSize: 22, fontWeight: 700, fontFamily: "'Fraunces',serif",
             color: cheaper===1 ? C.blue : C.ink }}>
             € {fmt(calc.arrival)}
           </div>
+          {destCountry !== "XK" && (
+            <div style={{ fontSize: 10, color: C.muted, fontWeight: 700, marginTop: 2 }}>{t.currencyApprox(fmtLocal(calc.arrival, destCountry))}</div>
+          )}
         </div>
 
         {/* Car 2 */}
@@ -903,11 +980,14 @@ function VergleichMode({ t, lang, C, fmt, calc, price, make, model, year, ageYea
           <div style={{ fontSize: 11, color: C.muted }}>Kaufpreis</div>
           <div style={{ fontSize: 16, fontWeight: 700 }}>€ {fmt(v2price)}</div>
           <div style={{ height: 1, background: C.line, margin: "10px 0" }} />
-          <div style={{ fontSize: 11, color: C.muted }}>Ankunft Kosovo</div>
+          <div style={{ fontSize: 11, color: C.muted }}>{lang==="de"?"Ankunft":"Landed cost"}: {destName}</div>
           <div style={{ fontSize: 22, fontWeight: 700, fontFamily: "'Fraunces',serif",
             color: cheaper===2 ? C.blue : C.ink }}>
             € {fmt(v2calc.arrival)}
           </div>
+          {destCountry !== "XK" && (
+            <div style={{ fontSize: 10, color: C.muted, fontWeight: 700, marginTop: 2 }}>{t.currencyApprox(fmtLocal(v2calc.arrival, destCountry))}</div>
+          )}
         </div>
       </div>
 
@@ -1745,54 +1825,10 @@ export default function App() {
     return computeCatalogValue({ cc: engine, ageYears });
   }, [engine, ageYears, isNew, destCountry]);
 
-  const calc = useMemo(() => {
-    const cif = price + transport + insurance;
-    if (destCountry === "AL") {
-      const customs = 0;
-      const excise = 0;
-      const vatBase = cif;
-      const vat = vatBase * ALBANIA_TAX_CONFIG.vatRate;
-      const importTaxes = customs + excise + vat;
-      const isLuxury = engine >= ALBANIA_TAX_CONFIG.luxuryEngineCC || price >= ALBANIA_TAX_CONFIG.luxuryValueEUR;
-      const reg = ALBANIA_TAX_CONFIG.regFee + (isLuxury ? ALBANIA_TAX_CONFIG.luxuryRegTax : 0);
-      const arrival = cif + importTaxes + reg;
-      const toState = customs + excise + vat + reg;
-      const vatRefund = price * (ORIGIN[origin]?.vatRefund || 0);
-      return { cif, customs, excise, vat, vatBase, importTaxes, reg, arrival, toState, vatRefund, catalogArrival: null, isLuxury };
-    }
-    if (destCountry === "MK") {
-      const customs = hasEur1 ? cif * MK_TAX_CONFIG.customsRateEur1 : cif * MK_TAX_CONFIG.customsRate;
-      const dmvPct = engine <= 1500 ? MK_TAX_CONFIG.dmvRatesByEngine.le1500
-        : engine <= 2000 ? MK_TAX_CONFIG.dmvRatesByEngine.le2000
-        : engine <= 3000 ? MK_TAX_CONFIG.dmvRatesByEngine.le3000
-        : MK_TAX_CONFIG.dmvRatesByEngine.gt3000;
-      const excise = price * dmvPct; // DMV (Danok na motorni vozila) — vlerësim
-      const vatBase = cif + customs + excise;
-      const vat = vatBase * MK_TAX_CONFIG.vatRate;
-      const importTaxes = customs + excise + vat;
-      const reg = MK_TAX_CONFIG.regFee;
-      const arrival = cif + importTaxes + reg;
-      const toState = customs + excise + vat + reg;
-      const vatRefund = price * (ORIGIN[origin]?.vatRefund || 0);
-      return { cif, customs, excise, vat, vatBase, importTaxes, reg, arrival, toState, vatRefund, catalogArrival: null, isLuxury: false };
-    }
-    // Steuerbasis = nur Kaufpreis (Transport/Versicherung werden nicht besteuert)
-    const taxBase = price;
-    const customs = hasEur1 ? 0 : taxBase * TAX_CONFIG.customsRate;
-    const excise = computeExcise({ cc: engine, ageYears, isNewUnregistered: isNew, fuel });
-    const vatBase = taxBase + customs + excise;
-    const vat = vatBase * TAX_CONFIG.vatRate;
-    const importTaxes = customs + excise + vat;
-    const reg = TAX_CONFIG.ecoTax + TAX_CONFIG.roadTax;
-    const arrival = cif + importTaxes + reg;
-    const toState = customs + excise + vat + reg;
-    const vatRefund = price * (ORIGIN[origin]?.vatRefund || 0);
-    const catalogCustoms = catalogValue && !hasEur1 ? catalogValue * TAX_CONFIG.customsRate : 0;
-    const catalogVatBase = catalogValue ? catalogValue + catalogCustoms + excise : null;
-    const catalogVat = catalogVatBase ? catalogVatBase * TAX_CONFIG.vatRate : 0;
-    const catalogArrival = catalogValue ? (catalogValue + transport + insurance) + catalogCustoms + excise + catalogVat + reg : null;
-    return { cif, customs, excise, vat, vatBase, importTaxes, reg, arrival, toState, vatRefund, catalogArrival };
-  }, [price, transport, insurance, engine, ageYears, isNew, fuel, hasEur1, catalogValue, origin, destCountry]);
+  const calc = useMemo(() => computeImportCost({
+    destCountry, price, transport, insurance, engine, ageYears, isNew, fuel, hasEur1,
+    vatRefundRate: ORIGIN[origin]?.vatRefund || 0, catalogValue,
+  }), [price, transport, insurance, engine, ageYears, isNew, fuel, hasEur1, catalogValue, origin, destCountry]);
 
   const animatedTotal = useCountUp(calc.arrival);
   const catalogHigher = catalogValue && (catalogValue > price);
@@ -2167,7 +2203,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
         {tab === "compare" && (
           <VergleichMode t={t} lang={lang} C={C} fmt={fmt}
             calc={calc} price={price} make={make} model={model}
-            year={year} ageYears={ageYears} />
+            year={year} ageYears={ageYears} destCountry={destCountry} hasEur1={hasEur1} />
         )}
 
         {tab === "tools" && (
