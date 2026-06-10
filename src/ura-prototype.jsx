@@ -45,6 +45,29 @@ const ALBANIA_TAX_CONFIG = {
   officialSources: { tarik: "https://dogana.gov.al/", label: "Dogana e Shqipërisë / DPSHTRR" },
 };
 
+// Maqedonia e Veriut — kosto importi automjeti, 2026
+// Burime: customs.gov.mk, Ligji për TVSH (DDV 18%), Ligji për taksat e mjeteve motorike (DMV, që nga 1.1.2020)
+// Shënim: DMV reale llogaritet sipas vlerës + CO2 g/km (tabela zyrtare jo publike plotësisht) — këtu përdoret VLERËSIM bazuar në cilindratë.
+const MK_TAX_CONFIG = {
+  customsRate: 0.05,       // Carinë 5%
+  customsRateEur1: 0.01,   // Carinë 1% me certifikatë EUR.1 (origjinë BE)
+  vatRate: 0.18,           // DDV 18% mbi (vlera doganore + carina + DMV)
+  regFee: 50,              // Regjistrim/administrim, vlerësim
+  dmvRatesByEngine: { le1500: 0.02, le2000: 0.05, le3000: 0.09, gt3000: 0.15 }, // DMV vlerësim si % e çmimit, sipas cilindratës
+  officialSources: { tarik: "https://customs.gov.mk/", label: "Drejtoria e Doganave e Maqedonisë së Veriut (DMV)" },
+};
+
+// Kurset e këmbimit EUR → monedha vendore (përafërt, vetëm informuese — Qershor 2026)
+const CURRENCY = {
+  XK: { code: "EUR", symbol: "€", rate: 1 },
+  AL: { code: "ALL", symbol: "L", rate: 100 },
+  MK: { code: "MKD", symbol: "ден", rate: 61.5 },
+};
+const fmtLocal = (eur, dest) => {
+  const c = CURRENCY[dest] || CURRENCY.XK;
+  return `${new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(Math.round((eur || 0) * c.rate))} ${c.symbol}`;
+};
+
 // ─── WMI → Hersteller (lokale Erkennung, kein API nötig) ─────────────────────
 const WMI_BRANDS = {
   // Deutschland
@@ -263,6 +286,11 @@ const T = {
     destCountry: "Vendi i destinacionit", destXK: "🇽🇰 Kosovë", destAL: "🇦🇱 Shqipëri",
     alInfo: "Shqipëri: Doganë 0%, TVSH 20% mbi vlerën CIF (çmim + transport + sigurim). Mosha max. e lejuar: 10 vjet, minimumi Euro 4.",
     alLuxuryNote: "Veturë luksoze (≥3000cc ose ≥€48.000): + taksë regjistrimi fillestare ~€700.",
+    destMK: "🇲🇰 Maqedonia e Veriut",
+    mkInfo: "Maqedoni e Veriut: Doganë 5% (1% me EUR.1), DDV 18% mbi vlerën doganore + doganë + DMV. DMV (taksa e mjeteve motorike) këtu është VLERËSIM sipas cilindratës — konfirmo shumën e saktë në customs.gov.mk.",
+    mkExcise: "DMV (taksa e automjetit)",
+    mkExciseNote: "Vlerësim · kontrollo në customs.gov.mk",
+    currencyApprox: (amt) => `≈ ${amt}`,
     catalogHigher: (diff) => `Vlera e katalogut (~€ ${diff}) mund të jetë MBI çmimin tuaj.`,
     catalogLower: "Çmimi juaj i blerjes është mbi vlerën e katalogut.",
     vatRefundTitle: "Rimbursi i TVSH-së",
@@ -319,6 +347,11 @@ const T = {
     destCountry: "Zemlja odredišta", destXK: "🇽🇰 Kosovo", destAL: "🇦🇱 Albanija",
     alInfo: "Albanija: Carina 0%, PDV 20% na CIF vrednost (cena + transport + osiguranje). Maks. starost: 10 godina, minimum Euro 4.",
     alLuxuryNote: "Luksuzno vozilo (≥3000ccm ili ≥€48.000): + početna registraciona taksa ~€700.",
+    destMK: "🇲🇰 Severna Makedonija",
+    mkInfo: "Severna Makedonija: Carina 5% (1% sa EUR.1), DDV 18% na carinsku vrednost + carina + DMV. DMV (porez na motorna vozila) ovde je PROCENA na osnovu zapremine motora — proveri tačan iznos na customs.gov.mk.",
+    mkExcise: "DMV (porez na vozilo)",
+    mkExciseNote: "Procena · proveri na customs.gov.mk",
+    currencyApprox: (amt) => `≈ ${amt}`,
     catalogHigher: (diff) => `Kataloška vrednost (~€ ${diff}) može biti IZNAD vaše cene.`,
     catalogLower: "Vaša kupovna cena je iznad kataloške vrednosti.",
     vatRefundTitle: "Povrat PDV-a",
@@ -375,6 +408,11 @@ const T = {
     destCountry: "Destination country", destXK: "🇽🇰 Kosovo", destAL: "🇦🇱 Albania",
     alInfo: "Albania: 0% customs duty, 20% VAT on CIF value (price + transport + insurance). Max. age: 10 years, minimum Euro 4.",
     alLuxuryNote: "Luxury vehicle (≥3000cc or ≥€48,000): + initial registration tax ~€700.",
+    destMK: "🇲🇰 North Macedonia",
+    mkInfo: "North Macedonia: 5% customs (1% with EUR.1), 18% VAT on customs value + duty + DMV. The DMV (motor vehicle tax) shown here is an ESTIMATE based on engine size — verify the exact amount at customs.gov.mk.",
+    mkExcise: "DMV (motor vehicle tax)",
+    mkExciseNote: "Estimate · verify at customs.gov.mk",
+    currencyApprox: (amt) => `≈ ${amt}`,
     catalogHigher: (diff) => `Catalogue value (~€ ${diff}) may be ABOVE your price.`,
     catalogLower: "Your purchase price exceeds the catalogue value.",
     vatRefundTitle: "VAT Refund",
@@ -431,6 +469,11 @@ const T = {
     destCountry: "Zielland", destXK: "🇽🇰 Kosovo", destAL: "🇦🇱 Albanien",
     alInfo: "Albanien: 0% Zoll, 20% MwSt. auf den CIF-Wert (Preis + Transport + Versicherung). Max. Alter: 10 Jahre, mind. Euro 4.",
     alLuxuryNote: "Luxusfahrzeug (≥3000ccm oder ≥€48.000): + einmalige Zulassungssteuer ~€700.",
+    destMK: "🇲🇰 Nordmazedonien",
+    mkInfo: "Nordmazedonien: 5% Zoll (1% mit EUR.1), 18% MwSt. auf Zollwert + Zoll + DMV. Die DMV (Kfz-Steuer) ist hier eine SCHÄTZUNG nach Hubraum — genauen Betrag auf customs.gov.mk prüfen.",
+    mkExcise: "DMV (Kfz-Steuer)",
+    mkExciseNote: "Schätzwert · auf customs.gov.mk prüfen",
+    currencyApprox: (amt) => `≈ ${amt}`,
     catalogHigher: (diff) => `Katalogwert (~€ ${diff}) kann ÜBER Ihrem Preis liegen.`,
     catalogLower: "Ihr Kaufpreis liegt über dem Katalogwert.",
     vatRefundTitle: "MwSt.-Rückerstattung",
@@ -1688,6 +1731,8 @@ export default function App() {
     if (destCountry === "AL") {
       if (ageYears > ALBANIA_TAX_CONFIG.maxAgeYears) p.push(t.ageBad(ageYears, ALBANIA_TAX_CONFIG.maxAgeYears));
       if (euro < ALBANIA_TAX_CONFIG.minEuro) p.push(t.euroBad(euro, ALBANIA_TAX_CONFIG.minEuro));
+    } else if (destCountry === "MK") {
+      // Asnjë kufizim moshe/normash i konfirmuar zyrtarisht ende — shih panelin informues
     } else {
       if (ageYears > ageLimit) p.push(t.ageBad(ageYears, ageLimit));
       if (euro < TAX_CONFIG.minEuro) p.push(t.euroBad(euro, TAX_CONFIG.minEuro));
@@ -1696,7 +1741,7 @@ export default function App() {
   }, [ageYears, euro, lang, ageLimit, destCountry]);
 
   const catalogValue = useMemo(() => {
-    if (isNew || engine <= 0 || destCountry === "AL") return null;
+    if (isNew || engine <= 0 || destCountry === "AL" || destCountry === "MK") return null;
     return computeCatalogValue({ cc: engine, ageYears });
   }, [engine, ageYears, isNew, destCountry]);
 
@@ -1714,6 +1759,22 @@ export default function App() {
       const toState = customs + excise + vat + reg;
       const vatRefund = price * (ORIGIN[origin]?.vatRefund || 0);
       return { cif, customs, excise, vat, vatBase, importTaxes, reg, arrival, toState, vatRefund, catalogArrival: null, isLuxury };
+    }
+    if (destCountry === "MK") {
+      const customs = hasEur1 ? cif * MK_TAX_CONFIG.customsRateEur1 : cif * MK_TAX_CONFIG.customsRate;
+      const dmvPct = engine <= 1500 ? MK_TAX_CONFIG.dmvRatesByEngine.le1500
+        : engine <= 2000 ? MK_TAX_CONFIG.dmvRatesByEngine.le2000
+        : engine <= 3000 ? MK_TAX_CONFIG.dmvRatesByEngine.le3000
+        : MK_TAX_CONFIG.dmvRatesByEngine.gt3000;
+      const excise = price * dmvPct; // DMV (Danok na motorni vozila) — vlerësim
+      const vatBase = cif + customs + excise;
+      const vat = vatBase * MK_TAX_CONFIG.vatRate;
+      const importTaxes = customs + excise + vat;
+      const reg = MK_TAX_CONFIG.regFee;
+      const arrival = cif + importTaxes + reg;
+      const toState = customs + excise + vat + reg;
+      const vatRefund = price * (ORIGIN[origin]?.vatRefund || 0);
+      return { cif, customs, excise, vat, vatBase, importTaxes, reg, arrival, toState, vatRefund, catalogArrival: null, isLuxury: false };
     }
     // Steuerbasis = nur Kaufpreis (Transport/Versicherung werden nicht besteuert)
     const taxBase = price;
@@ -1875,8 +1936,8 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
   const costRows = [
     { label: t.catalogBuy, val: price, color: SEG_COLORS[0], strong: true },
     { label: lang==="de"?"Transport + Versicherung":lang==="sq"?"Transport + Sigurimi":lang==="sr"?"Transport + Osiguranje":"Transport + Insurance", val: (transport||0)+(insurance||0), color: SEG_COLORS[1] },
-    { label: t.customs, val: calc.customs, color: SEG_COLORS[2], hint: hasEur1?"0% · EUR.1":"10% · Kaufpreis" },
-    { label: t.excise, val: calc.excise, color: SEG_COLORS[3], hint: fuel==="ev"?t.evExciseNote:t.exciseNote, flag: true },
+    { label: t.customs, val: calc.customs, color: SEG_COLORS[2], hint: destCountry === "AL" ? "0% · CIF" : destCountry === "MK" ? (hasEur1 ? "1% · EUR.1" : "5% · CIF") : (hasEur1?"0% · EUR.1":"10% · Kaufpreis") },
+    { label: destCountry === "MK" ? t.mkExcise : t.excise, val: calc.excise, color: SEG_COLORS[3], hint: destCountry === "MK" ? t.mkExciseNote : (fuel==="ev"?t.evExciseNote:t.exciseNote), flag: true },
     { label: t.vat(fmt(calc.vatBase)), val: calc.vat, color: SEG_COLORS[4] },
     { label: lang==="de"?"Anmeldung":lang==="sq"?"Regjistrimi":lang==="sr"?"Registracija":"Registration", val: calc.reg, color: SEG_COLORS[5] },
   ].filter(r => r.val > 0);
@@ -1965,6 +2026,9 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
         <div style={{ flex: 1, minWidth: 140 }}>
           <div style={{ fontSize: 10, fontWeight: 800, color: C.muted, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>{t.arrival}</div>
           <div style={{ fontFamily: "'Fraunces',serif", fontWeight: 600, fontSize: "clamp(28px,4vw,38px)", color: C.ink, fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>€ {fmt(animatedTotal)}</div>
+          {destCountry !== "XK" && (
+            <div style={{ fontSize: 12.5, color: C.blue, fontWeight: 700, marginTop: 4 }}>{t.currencyApprox(fmtLocal(calc.arrival, destCountry))}</div>
+          )}
           <div style={{ fontSize: 12, color: C.muted, fontWeight: 600, marginTop: 8 }}>{t.over(fmt(calc.arrival - price), fmt(calc.reg))}</div>
         </div>
       </div>
@@ -2173,7 +2237,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
               </div>
               <div className="card ura-rise" style={{ padding: 18, marginBottom: 16, animationDelay: ".18s" }}>
                 <div className="form-grid">
-                  <div><label style={lbl}>{t.destCountry}</label><Select label={t.destCountry} value={destCountry} onChange={(e) => setDestCountry(e.target.value)}><option value="XK">{t.destXK}</option><option value="AL">{t.destAL}</option></Select></div>
+                  <div><label style={lbl}>{t.destCountry}</label><Select label={t.destCountry} value={destCountry} onChange={(e) => setDestCountry(e.target.value)}><option value="XK">{t.destXK}</option><option value="AL">{t.destAL}</option><option value="MK">{t.destMK}</option></Select></div>
                   <div><label style={lbl}>{t.category}</label><Select label={t.category} value={category} onChange={(e) => setCategory(e.target.value)}><option value="car">{t.catCar}</option><option value="van">{t.catVan}</option><option value="truck">{t.catTruck}</option><option value="moto">{t.catMoto}</option></Select></div>
                   <div><label style={lbl}>{t.year}</label><input style={errors.year ? inputErr : inputBox} type="number" value={year} onChange={(e) => { const v = +e.target.value; setYear(v); validate("year", v); }} />{errors.year && <div style={{ fontSize: 11, color: C.red, marginTop: 4 }}>{errors.year}</div>}</div>
                   <div><label style={lbl}>{t.make}</label><input style={inputBox} value={make} onChange={(e) => setMake(e.target.value)} /></div>
@@ -2221,6 +2285,14 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                   </span>
                 </div>
               )}
+              {destCountry === "MK" && (
+                <div style={{ marginBottom: 14, background: "rgba(16,185,129,0.08)", border: "1.5px solid rgba(16,185,129,0.25)", borderRadius: 14, padding: "11px 15px", display: "flex", gap: 9, alignItems: "flex-start" }}>
+                  <Info size={15} color="#10b981" style={{ flexShrink: 0, marginTop: 1 }} />
+                  <span style={{ fontSize: 12, color: "#10b981", fontWeight: 700, lineHeight: 1.5 }}>
+                    🇲🇰 {t.mkInfo}
+                  </span>
+                </div>
+              )}
               {origin === "KR" && !isNew && destCountry === "XK" && (
                 <div style={{ marginBottom: 14, background: "rgba(59,130,246,0.08)", border: "1.5px solid rgba(59,130,246,0.25)", borderRadius: 14, padding: "11px 15px", display: "flex", gap: 9, alignItems: "flex-start" }}>
                   <Info size={15} color="#3b82f6" style={{ flexShrink: 0, marginTop: 1 }} />
@@ -2251,10 +2323,17 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                   <div style={{ borderTop: `1px solid ${C.line}`, paddingTop: 14, display: "flex", flexDirection: "column", gap: 10 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{ fontSize: 14, fontWeight: 800, color: C.ink, flex: 1 }}>{t.customs}</span>
-                      <span style={{ fontSize: 12, color: C.muted, background: C.glass, borderRadius: 6, padding: "2px 8px" }}>{destCountry === "AL" ? "0% · CIF" : (hasEur1 ? "0% · EUR.1" : "10% · Kaufpreis")}</span>
+                      <span style={{ fontSize: 12, color: C.muted, background: C.glass, borderRadius: 6, padding: "2px 8px" }}>{destCountry === "AL" ? "0% · CIF" : destCountry === "MK" ? (hasEur1 ? "1% · EUR.1" : "5% · CIF") : (hasEur1 ? "0% · EUR.1" : "10% · Kaufpreis")}</span>
                       <span style={{ fontWeight: 800, color: C.ink }}>€ {fmt(calc.customs)}</span>
                     </div>
-                    {destCountry !== "AL" && (
+                    {destCountry === "MK" && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: C.ink, flex: 1 }}>{t.mkExcise}</span>
+                      <span style={{ fontSize: 11, color: "#f59e0b", background: "#f59e0b18", borderRadius: 6, padding: "2px 8px", fontWeight: 700 }}>{t.mkExciseNote}</span>
+                      <span style={{ fontWeight: 800, color: C.ink }}>€ {fmt(calc.excise)}</span>
+                    </div>
+                    )}
+                    {destCountry !== "AL" && destCountry !== "MK" && (
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{ fontSize: 14, fontWeight: 800, color: C.ink, flex: 1 }}>{t.excise}</span>
                       <span style={{ fontSize: 11, color: "#f59e0b", background: "#f59e0b18", borderRadius: 6, padding: "2px 8px", fontWeight: 700 }}>{t.exciseNote}</span>
@@ -2275,6 +2354,9 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                   <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>{t.arrival}</div>
                   <div style={{ fontSize: 11.5, color: C.muted, marginBottom: 8 }}>{t.over(fmt(calc.importTaxes), fmt(calc.reg))}</div>
                   <div style={{ fontFamily: "'Fraunces',serif", fontWeight: 700, fontSize: 46, color: C.blue, letterSpacing: -1 }}>€ {fmt(Math.round(animatedTotal))}</div>
+                  {destCountry !== "XK" && (
+                    <div style={{ fontSize: 13, color: C.muted, fontWeight: 700, marginTop: 4 }}>{t.currencyApprox(fmtLocal(calc.arrival, destCountry))}</div>
+                  )}
                 </div>
               </div>
               {calc.vatRefund > 0 && (
