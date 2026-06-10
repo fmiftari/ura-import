@@ -19,7 +19,9 @@ const TAX_CONFIG = {
   catalogFactors: {
     0: 1.00, 1: 0.85, 2: 0.75, 3: 0.65, 4: 0.57, 5: 0.50,
     6: 0.44, 7: 0.39, 8: 0.34, 9: 0.30, 10: 0.27,
+    11: 0.24, 12: 0.22, 13: 0.20, 14: 0.18, 15: 0.16,
   },
+  catalogFactorMin: 0.16, // Untergrenze für sehr alte Fahrzeuge (>15 Jahre) — verhindert unrealistisch niedrige Katalogwerte
   newMarketPrice: { le2000: 28000, le3000: 42000, gt3000: 65000 },
   // Oficiale: Vendimi Qeverisë 24.03.2015 — vlera fikse sipas cc & moshës
   // Burimi: kosovatools.org/taksa-e-veturave (GPL, open-source)
@@ -524,8 +526,8 @@ function computeExcise({ cc, ageYears, isNewUnregistered, fuel }) {
 function computeCatalogValue({ cc, ageYears }) {
   const band = ccBand(cc);
   const newPrice = TAX_CONFIG.newMarketPrice[band];
-  const age = Math.min(ageYears, 10);
-  const factor = TAX_CONFIG.catalogFactors[age] ?? TAX_CONFIG.catalogFactors[10];
+  const age = Math.max(0, Math.min(Math.round(ageYears), 15));
+  const factor = TAX_CONFIG.catalogFactors[age] ?? TAX_CONFIG.catalogFactorMin;
   return Math.round(newPrice * factor);
 }
 
