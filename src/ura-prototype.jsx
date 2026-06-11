@@ -313,6 +313,8 @@ const T = {
     mkExciseNote: "Vlerësim · kontrollo në customs.gov.mk",
     mkExciseEvNote: "0€ · veturat elektrike (0g/km CO2) përjashtohen nga DMV",
     currencyApprox: (amt) => `≈ ${amt}`,
+    marketCheckTitle: "Krahaso çmimin në treg",
+    marketCheckSub: "Shiko çmime aktuale për këtë model para se të blesh",
     catalogHigher: (diff) => `Vlera e katalogut (~€ ${diff}) mund të jetë MBI çmimin tuaj.`,
     catalogLower: "Çmimi juaj i blerjes është mbi vlerën e katalogut.",
     vatRefundTitle: "Rimbursi i TVSH-së",
@@ -375,6 +377,8 @@ const T = {
     mkExciseNote: "Procena · proveri na customs.gov.mk",
     mkExciseEvNote: "0€ · električna vozila (0g/km CO2) oslobođena od DMV",
     currencyApprox: (amt) => `≈ ${amt}`,
+    marketCheckTitle: "Uporedi cenu na tržištu",
+    marketCheckSub: "Pogledaj trenutne cene za ovaj model pre kupovine",
     catalogHigher: (diff) => `Kataloška vrednost (~€ ${diff}) može biti IZNAD vaše cene.`,
     catalogLower: "Vaša kupovna cena je iznad kataloške vrednosti.",
     vatRefundTitle: "Povrat PDV-a",
@@ -437,6 +441,8 @@ const T = {
     mkExciseNote: "Estimate · verify at customs.gov.mk",
     mkExciseEvNote: "€0 · electric vehicles (0g/km CO2) exempt from DMV",
     currencyApprox: (amt) => `≈ ${amt}`,
+    marketCheckTitle: "Compare market price",
+    marketCheckSub: "Check current listings for this model before you buy",
     catalogHigher: (diff) => `Catalogue value (~€ ${diff}) may be ABOVE your price.`,
     catalogLower: "Your purchase price exceeds the catalogue value.",
     vatRefundTitle: "VAT Refund",
@@ -499,6 +505,8 @@ const T = {
     mkExciseNote: "Schätzwert · auf customs.gov.mk prüfen",
     mkExciseEvNote: "0€ · E-Fahrzeuge (0g/km CO2) von DMV befreit",
     currencyApprox: (amt) => `≈ ${amt}`,
+    marketCheckTitle: "Marktpreis vergleichen",
+    marketCheckSub: "Aktuelle Angebote für dieses Modell vor dem Kauf prüfen",
     catalogHigher: (diff) => `Katalogwert (~€ ${diff}) kann ÜBER Ihrem Preis liegen.`,
     catalogLower: "Ihr Kaufpreis liegt über dem Katalogwert.",
     vatRefundTitle: "MwSt.-Rückerstattung",
@@ -904,7 +912,11 @@ function WizardMode({ t, lang, C, fmt }) {
             </div>
           )}
 
-          <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+          <div style={{ marginTop: 16 }}>
+            <MarketCheckLinks t={t} make={wModel?.label} model="" year={wYear} C={C} />
+          </div>
+
+          <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
             <button onClick={() => setStep(0)}
               style={{ flex: 1, background: C.glass, border: `1px solid ${C.line}`,
                 borderRadius: 13, padding: "12px", fontFamily: "inherit",
@@ -1211,6 +1223,36 @@ function SavingsTips({ t, calc, hasEur1, ageYears, engine, fuel, C }) {
           <span style={{ fontSize: 12.5, fontWeight: 600, color: C.ink, lineHeight: 1.5 }}>{tip.text}</span>
         </div>
       ))}
+    </div>
+  );
+}
+
+// ─── MARKTPREIS-CHECK ───────────────────────────────────────────────────────
+function MarketCheckLinks({ t, make, model, year, C }) {
+  const query = [make, model, year].filter(Boolean).join(" ").trim();
+  if (!query) return null;
+  const enc = encodeURIComponent(query);
+  const links = [
+    { label: "AutoScout24", url: `https://www.google.com/search?q=${enc}+site%3Aautoscout24.de` },
+    { label: "mobile.de", url: `https://www.google.com/search?q=${enc}+site%3Amobile.de` },
+  ];
+  return (
+    <div className="card" style={{ padding: "14px 16px", marginBottom: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 10 }}>
+        <div style={{ width: 38, height: 38, borderRadius: 11, background: C.blueSoft, display: "grid", placeItems: "center", flexShrink: 0 }}><TrendingUp size={18} color={C.blue} /></div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 700 }}>{t.marketCheckTitle}</div>
+          <div style={{ fontSize: 11.5, color: C.muted, fontWeight: 600 }}>{t.marketCheckSub}</div>
+        </div>
+      </div>
+      <div style={{ display: "flex", gap: 10 }}>
+        {links.map(l => (
+          <a key={l.label} href={l.url} target="_blank" rel="noopener noreferrer"
+            style={{ flex: 1, background: C.glass, border: `1.5px solid ${C.line}`, borderRadius: 13, padding: "12px", fontFamily: "inherit", fontWeight: 700, fontSize: 13, color: C.ink, textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+            {l.label} <ExternalLink size={14} color={C.blue} />
+          </a>
+        ))}
+      </div>
     </div>
   );
 }
@@ -2150,6 +2192,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
       <div style={{ fontFamily: "'Fraunces',serif", fontWeight: 600, fontSize: 20, color: C.blue, fontVariantNumeric: "tabular-nums" }}>€ {fmt(calc.toState)}</div>
     </div>
     <SavingsTips t={t} calc={calc} hasEur1={hasEur1} ageYears={ageYears} engine={engine} fuel={fuel} C={C} />
+    <MarketCheckLinks t={t} make={make} model={model} year={year} C={C} />
     <SharePanel t={t} make={make} model={model} year={year} arrival={calc.arrival} price={price} lang={lang} />
     <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
       <button onClick={() => window.print()} style={{ flex: 1, background: C.glass, border: `1.5px solid ${C.line}`, borderRadius: 13, padding: "13px", fontFamily: "inherit", fontWeight: 700, fontSize: 13.5, color: C.ink, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>🖨️ PDF</button>
