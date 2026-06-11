@@ -292,6 +292,7 @@ const T = {
     mkInfo: "Maqedoni e Veriut: Doganë 5% (1% me EUR.1), DDV 18% mbi vlerën doganore + doganë + DMV. DMV (taksa e mjeteve motorike) këtu është VLERËSIM sipas cilindratës — konfirmo shumën e saktë në customs.gov.mk.",
     mkExcise: "DMV (taksa e automjetit)",
     mkExciseNote: "Vlerësim · kontrollo në customs.gov.mk",
+    mkExciseEvNote: "0€ · veturat elektrike (0g/km CO2) përjashtohen nga DMV",
     currencyApprox: (amt) => `≈ ${amt}`,
     catalogHigher: (diff) => `Vlera e katalogut (~€ ${diff}) mund të jetë MBI çmimin tuaj.`,
     catalogLower: "Çmimi juaj i blerjes është mbi vlerën e katalogut.",
@@ -353,6 +354,7 @@ const T = {
     mkInfo: "Severna Makedonija: Carina 5% (1% sa EUR.1), DDV 18% na carinsku vrednost + carina + DMV. DMV (porez na motorna vozila) ovde je PROCENA na osnovu zapremine motora — proveri tačan iznos na customs.gov.mk.",
     mkExcise: "DMV (porez na vozilo)",
     mkExciseNote: "Procena · proveri na customs.gov.mk",
+    mkExciseEvNote: "0€ · električna vozila (0g/km CO2) oslobođena od DMV",
     currencyApprox: (amt) => `≈ ${amt}`,
     catalogHigher: (diff) => `Kataloška vrednost (~€ ${diff}) može biti IZNAD vaše cene.`,
     catalogLower: "Vaša kupovna cena je iznad kataloške vrednosti.",
@@ -414,6 +416,7 @@ const T = {
     mkInfo: "North Macedonia: 5% customs (1% with EUR.1), 18% VAT on customs value + duty + DMV. The DMV (motor vehicle tax) shown here is an ESTIMATE based on engine size — verify the exact amount at customs.gov.mk.",
     mkExcise: "DMV (motor vehicle tax)",
     mkExciseNote: "Estimate · verify at customs.gov.mk",
+    mkExciseEvNote: "€0 · electric vehicles (0g/km CO2) exempt from DMV",
     currencyApprox: (amt) => `≈ ${amt}`,
     catalogHigher: (diff) => `Catalogue value (~€ ${diff}) may be ABOVE your price.`,
     catalogLower: "Your purchase price exceeds the catalogue value.",
@@ -475,6 +478,7 @@ const T = {
     mkInfo: "Nordmazedonien: 5% Zoll (1% mit EUR.1), 18% MwSt. auf Zollwert + Zoll + DMV. Die DMV (Kfz-Steuer) ist hier eine SCHÄTZUNG nach Hubraum — genauen Betrag auf customs.gov.mk prüfen.",
     mkExcise: "DMV (Kfz-Steuer)",
     mkExciseNote: "Schätzwert · auf customs.gov.mk prüfen",
+    mkExciseEvNote: "0€ · E-Fahrzeuge (0g/km CO2) von DMV befreit",
     currencyApprox: (amt) => `≈ ${amt}`,
     catalogHigher: (diff) => `Katalogwert (~€ ${diff}) kann ÜBER Ihrem Preis liegen.`,
     catalogLower: "Ihr Kaufpreis liegt über dem Katalogwert.",
@@ -555,7 +559,8 @@ function computeImportCost({ destCountry, price, transport = 0, insurance = 0, e
       : engine <= 2000 ? MK_TAX_CONFIG.dmvRatesByEngine.le2000
       : engine <= 3000 ? MK_TAX_CONFIG.dmvRatesByEngine.le3000
       : MK_TAX_CONFIG.dmvRatesByEngine.gt3000;
-    const excise = price * dmvPct; // DMV (Danok na motorni vozila) — vlerësim
+    // DMV bazohet realisht te emetimet CO2 (g/km) — veturat elektrike (0 g/km, cc=0) → DMV ≈ 0
+    const excise = (engine <= 0 || fuel === "ev") ? 0 : price * dmvPct; // DMV (Danok na motorni vozila) — vlerësim
     const vatBase = cif + customs + excise;
     const vat = vatBase * MK_TAX_CONFIG.vatRate;
     const importTaxes = customs + excise + vat;
@@ -1975,7 +1980,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
     { label: t.catalogBuy, val: price, color: SEG_COLORS[0], strong: true },
     { label: lang==="de"?"Transport + Versicherung":lang==="sq"?"Transport + Sigurimi":lang==="sr"?"Transport + Osiguranje":"Transport + Insurance", val: (transport||0)+(insurance||0), color: SEG_COLORS[1] },
     { label: t.customs, val: calc.customs, color: SEG_COLORS[2], hint: destCountry === "AL" ? "0% · CIF" : destCountry === "MK" ? (hasEur1 ? "1% · EUR.1" : "5% · CIF") : (hasEur1?"0% · EUR.1":"10% · Kaufpreis") },
-    { label: destCountry === "MK" ? t.mkExcise : t.excise, val: calc.excise, color: SEG_COLORS[3], hint: destCountry === "MK" ? t.mkExciseNote : (fuel==="ev"?t.evExciseNote:t.exciseNote), flag: true },
+    { label: destCountry === "MK" ? t.mkExcise : t.excise, val: calc.excise, color: SEG_COLORS[3], hint: destCountry === "MK" ? (fuel==="ev"?t.mkExciseEvNote:t.mkExciseNote) : (fuel==="ev"?t.evExciseNote:t.exciseNote), flag: true },
     { label: t.vat(fmt(calc.vatBase)), val: calc.vat, color: SEG_COLORS[4] },
     { label: lang==="de"?"Anmeldung":lang==="sq"?"Regjistrimi":lang==="sr"?"Registracija":"Registration", val: calc.reg, color: SEG_COLORS[5] },
   ].filter(r => r.val > 0);
@@ -2379,7 +2384,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                     {destCountry === "MK" && (
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{ fontSize: 14, fontWeight: 800, color: C.ink, flex: 1 }}>{t.mkExcise}</span>
-                      <span style={{ fontSize: 11, color: "#f59e0b", background: "#f59e0b18", borderRadius: 6, padding: "2px 8px", fontWeight: 700 }}>{t.mkExciseNote}</span>
+                      <span style={{ fontSize: 11, color: fuel==="ev" ? C.greenDeep : "#f59e0b", background: fuel==="ev" ? C.blueSoft : "#f59e0b18", borderRadius: 6, padding: "2px 8px", fontWeight: 700 }}>{fuel==="ev" ? t.mkExciseEvNote : t.mkExciseNote}</span>
                       <span style={{ fontWeight: 800, color: C.ink }}>€ {fmt(calc.excise)}</span>
                     </div>
                     )}
