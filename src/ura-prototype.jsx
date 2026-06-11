@@ -59,11 +59,11 @@ const MK_TAX_CONFIG = {
   officialSources: { tarik: "https://customs.gov.mk/", label: "Drejtoria e Doganave e Maqedonisë së Veriut (DMV)" },
 };
 
-// Kurset e këmbimit EUR → monedha vendore (përafërt, vetëm informuese — Qershor 2026)
+// Kurset e këmbimit EUR → monedha vendore (përafërt, vetëm informuese — azhurnuar 11 Qershor 2026)
 const CURRENCY = {
   XK: { code: "EUR", symbol: "€", rate: 1 },
-  AL: { code: "ALL", symbol: "L", rate: 100 },
-  MK: { code: "MKD", symbol: "ден", rate: 61.5 },
+  AL: { code: "ALL", symbol: "L", rate: 95 },
+  MK: { code: "MKD", symbol: "ден", rate: 61.6 },
 };
 const fmtLocal = (eur, dest) => {
   const c = CURRENCY[dest] || CURRENCY.XK;
