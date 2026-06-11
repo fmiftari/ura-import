@@ -65,10 +65,29 @@ const CURRENCY = {
   AL: { code: "ALL", symbol: "L", rate: 95 },
   MK: { code: "MKD", symbol: "ден", rate: 61.6 },
 };
-const fmtLocal = (eur, dest) => {
+const fmtLocal = (eur, dest, liveRates) => {
   const c = CURRENCY[dest] || CURRENCY.XK;
-  return `${new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(Math.round((eur || 0) * c.rate))} ${c.symbol}`;
+  const rate = (liveRates && liveRates[c.code]) ? liveRates[c.code] : c.rate;
+  return `${new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(Math.round((eur || 0) * rate))} ${c.symbol}`;
 };
+// Live-Kurs (EUR-Basis) im Hintergrund laden, mit statischen CURRENCY-Werten als Fallback —
+// macht die angezeigten Lokalwährungsbeträge ohne zusätzliche UI/Klicks aktueller.
+let _liveCurrencyCache = null;
+let _liveCurrencyPromise = null;
+function useLiveCurrencyRates() {
+  const [rates, setRates] = useState(_liveCurrencyCache);
+  useEffect(() => {
+    if (_liveCurrencyCache) { setRates(_liveCurrencyCache); return; }
+    if (!_liveCurrencyPromise) {
+      _liveCurrencyPromise = fetch("https://api.exchangerate-api.com/v4/latest/EUR")
+        .then(r => r.json())
+        .then(d => { _liveCurrencyCache = d.rates; return d.rates; })
+        .catch(() => null);
+    }
+    _liveCurrencyPromise.then(r => { if (r) setRates(r); });
+  }, []);
+  return rates;
+}
 
 // ─── WMI → Hersteller (lokale Erkennung, kein API nötig) ─────────────────────
 const WMI_BRANDS = {
@@ -625,6 +644,7 @@ const WIZARD_STEPS = {
 };
 
 function WizardMode({ t, lang, C, fmt }) {
+  const liveRates = useLiveCurrencyRates();
   const [step, setStep] = useState(0);
   const [wOrigin, setWOrigin] = useState(null);
   const [wModel, setWModel] = useState(null);
@@ -835,7 +855,7 @@ function WizardMode({ t, lang, C, fmt }) {
               € {fmt(wCalc.arrival)}
             </div>
             {wDest !== "XK" && (
-              <div style={{ fontSize: 13, color: C.navy, opacity: .85, fontWeight: 700, marginTop: 2 }}>{t.currencyApprox(fmtLocal(wCalc.arrival, wDest))}</div>
+              <div style={{ fontSize: 13, color: C.navy, opacity: .85, fontWeight: 700, marginTop: 2 }}>{t.currencyApprox(fmtLocal(wCalc.arrival, wDest, liveRates))}</div>
             )}
             <div style={{ fontSize: 13, color: C.navy, opacity: .7, marginTop: 4 }}>
               +€ {fmt(wCalc.arrival - wPrice)} {lang === "de" ? "über Kaufpreis" : "over purchase price"}
@@ -914,6 +934,7 @@ function WizardMode({ t, lang, C, fmt }) {
 
 // ─── VERGLEICH MODUS ─────────────────────────────────────────────────────────
 function VergleichMode({ t, lang, C, fmt, calc, price, make, model, year, ageYears, destCountry, hasEur1 }) {
+  const liveRates = useLiveCurrencyRates();
   const [v2price, setV2price] = useState(10000);
   const [v2year, setV2year] = useState(2019);
   const [v2make, setV2make] = useState("BMW");
@@ -970,7 +991,7 @@ function VergleichMode({ t, lang, C, fmt, calc, price, make, model, year, ageYea
             € {fmt(calc.arrival)}
           </div>
           {destCountry !== "XK" && (
-            <div style={{ fontSize: 10, color: C.muted, fontWeight: 700, marginTop: 2 }}>{t.currencyApprox(fmtLocal(calc.arrival, destCountry))}</div>
+            <div style={{ fontSize: 10, color: C.muted, fontWeight: 700, marginTop: 2 }}>{t.currencyApprox(fmtLocal(calc.arrival, destCountry, liveRates))}</div>
           )}
         </div>
 
@@ -1646,6 +1667,7 @@ function ResultsDonut({ segments, total }) {
 }
 
 export default function App() {
+  const liveRates = useLiveCurrencyRates();
   const [lang, setLang] = useState("sq");
   const t = T[lang];
   const [tab, setTab] = useState("calc");
@@ -2070,7 +2092,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
           <div style={{ fontSize: 10, fontWeight: 800, color: C.muted, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>{t.arrival}</div>
           <div style={{ fontFamily: "'Fraunces',serif", fontWeight: 600, fontSize: "clamp(28px,4vw,38px)", color: C.ink, fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>€ {fmt(animatedTotal)}</div>
           {destCountry !== "XK" && (
-            <div style={{ fontSize: 12.5, color: C.blue, fontWeight: 700, marginTop: 4 }}>{t.currencyApprox(fmtLocal(calc.arrival, destCountry))}</div>
+            <div style={{ fontSize: 12.5, color: C.blue, fontWeight: 700, marginTop: 4 }}>{t.currencyApprox(fmtLocal(calc.arrival, destCountry, liveRates))}</div>
           )}
           <div style={{ fontSize: 12, color: C.muted, fontWeight: 600, marginTop: 8 }}>{t.over(fmt(calc.arrival - price - calc.reg), fmt(calc.reg))}</div>
         </div>
@@ -2410,7 +2432,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                   <div style={{ fontSize: 11.5, color: C.muted, marginBottom: 8 }}>{t.over(fmt(calc.arrival - price - calc.reg), fmt(calc.reg))}</div>
                   <div style={{ fontFamily: "'Fraunces',serif", fontWeight: 700, fontSize: 46, color: C.blue, letterSpacing: -1 }}>€ {fmt(Math.round(animatedTotal))}</div>
                   {destCountry !== "XK" && (
-                    <div style={{ fontSize: 13, color: C.muted, fontWeight: 700, marginTop: 4 }}>{t.currencyApprox(fmtLocal(calc.arrival, destCountry))}</div>
+                    <div style={{ fontSize: 13, color: C.muted, fontWeight: 700, marginTop: 4 }}>{t.currencyApprox(fmtLocal(calc.arrival, destCountry, liveRates))}</div>
                   )}
                 </div>
               </div>
