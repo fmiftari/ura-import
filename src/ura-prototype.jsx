@@ -1083,6 +1083,15 @@ function InfoPage({ t, lang, C }) {
       legal_title: "Rechtliches",
       legal: "Diese App erhebt keine persönlichen Daten. Es werden keine Cookies gesetzt. Alle Berechnungen finden lokal im Browser statt.",
       sources_title: "Offizielle Quellen",
+      faq_title: "Häufige Fragen",
+      faq: [
+        { q: "Wie hoch ist der Zoll für ein Auto-Import nach Kosovo?", a: "Grundsätzlich gilt ein Zollsatz von 10% auf den Zollwert (Kaufpreis + Transport + Versicherung). Mit einer gültigen EUR.1-Bescheinigung (Ursprung EU) entfällt der Zoll vollständig (0%)." },
+        { q: "Was ist die Akzise (Akcizë) und wie wird sie berechnet?", a: "Die Akzise ist eine zusätzliche Steuer, die von Motorgröße (Hubraum), Fahrzeugalter und Kraftstoffart abhängt. Ältere und größere Motoren zahlen mehr. Elektroautos sind von der Akzise befreit." },
+        { q: "Wie hoch ist die Mehrwertsteuer (TVSH/MwSt) beim Autoimport?", a: "Die Mehrwertsteuer beträgt 18% und wird auf die Summe aus Zollwert, Zoll und Akzise berechnet." },
+        { q: "Darf ich ein Auto importieren, das älter als 10 Jahre ist?", a: "Nein. Laut kosovarischem Gesetz dürfen Fahrzeuge, die älter als 10 Jahre sind, nicht verzollt bzw. registriert werden. Zusätzlich gilt mindestens die Euro-4-Abgasnorm." },
+        { q: "Was bringt mir eine EUR.1-Bescheinigung?", a: "Mit einer EUR.1-Bescheinigung (Ursprungsnachweis EU) entfällt der 10%ige Zoll komplett — das spart bei einem Auto im Wert von €10.000 etwa €1.000." },
+        { q: "Ist URA wirklich kostenlos und wie genau sind die Ergebnisse?", a: "Ja, URA ist komplett kostenlos, ohne Registrierung und ohne Werbung. Alle Beträge sind Schätzungen zur Orientierung — die verbindliche Berechnung erfolgt durch die Dogana e Kosovës bei der Einfuhr." },
+      ],
     },
     sq: {
       title: "Rreth URA",
@@ -1095,6 +1104,15 @@ function InfoPage({ t, lang, C }) {
       legal_title: "Ligjore",
       legal: "Kjo aplikacion nuk mbledh të dhëna personale. Nuk vendosen cookie. Të gjitha llogaritjet bëhen lokalisht në shfletues.",
       sources_title: "Burimet zyrtare",
+      faq_title: "Pyetje të shpeshta",
+      faq: [
+        { q: "Sa është dogana për import të veturës në Kosovë?", a: "Norma standarde e doganës është 10% mbi vlerën doganore (çmimi + transporti + sigurimi). Me certifikatë EUR.1 (origjinë BE) dogana bie në 0%." },
+        { q: "Çka është akciza dhe si llogaritet?", a: "Akciza është taksë shtesë që varet nga madhësia e motorit, mosha e veturës dhe lloji i karburantit. Motorët më të mëdhenj dhe veturat më të vjetra paguajnë më shumë. Veturat elektrike janë të liruara nga akciza." },
+        { q: "Sa është TVSH-ja për import të veturës?", a: "TVSH-ja është 18% dhe llogaritet mbi shumën e vlerës doganore, doganës dhe akcizës." },
+        { q: "A mund të importoj veturë më të vjetër se 10 vjet?", a: "Jo. Sipas ligjit në Kosovë, veturat më të vjetra se 10 vjet nuk mund të zhdoganohen ose regjistrohen. Kërkohet gjithashtu minimumi standard Euro 4." },
+        { q: "Çka më sjell certifikata EUR.1?", a: "Me certifikatën EUR.1 (dëshmi origjine nga BE) dogana 10% bie në 0% — kjo kursen rreth €1.000 për një veturë me vlerë €10.000." },
+        { q: "A është URA falas dhe sa të sakta janë rezultatet?", a: "Po, URA është plotësisht falas, pa regjistrim dhe pa reklama. Të gjitha shumat janë vlerësime orientuese — llogaritja e detyrueshme bëhet nga Dogana e Kosovës në momentin e importit." },
+      ],
     },
     en: {
       title: "About URA",
@@ -1107,6 +1125,15 @@ function InfoPage({ t, lang, C }) {
       legal_title: "Legal",
       legal: "This app does not collect personal data. No cookies are set. All calculations happen locally in the browser.",
       sources_title: "Official sources",
+      faq_title: "Frequently asked questions",
+      faq: [
+        { q: "How much customs duty applies to car imports to Kosovo?", a: "The standard customs duty rate is 10% of the customs value (price + transport + insurance). With a valid EUR.1 certificate (EU origin), the duty drops to 0%." },
+        { q: "What is the excise tax (akcizë) and how is it calculated?", a: "The excise tax depends on engine size, vehicle age and fuel type. Bigger and older engines pay more. Electric vehicles are exempt from excise tax." },
+        { q: "How much VAT applies when importing a car?", a: "VAT is 18% and is calculated on the sum of customs value, customs duty and excise tax." },
+        { q: "Can I import a car older than 10 years?", a: "No. Under Kosovo law, vehicles older than 10 years cannot be cleared through customs or registered. A minimum of Euro 4 emission standard is also required." },
+        { q: "What does an EUR.1 certificate get me?", a: "With an EUR.1 certificate (proof of EU origin), the 10% customs duty is eliminated entirely — saving about €1,000 on a €10,000 car." },
+        { q: "Is URA really free, and how accurate are the results?", a: "Yes, URA is completely free, with no registration and no ads. All amounts are estimates for guidance — the binding calculation is made by Dogana e Kosovës (Kosovo Customs) at the time of import." },
+      ],
     },
     sr: {
       title: "O URA",
@@ -1119,10 +1146,42 @@ function InfoPage({ t, lang, C }) {
       legal_title: "Pravno",
       legal: "Ova aplikacija ne prikuplja lične podatke. Nema kolačića. Svi proračuni se vrše lokalno u pregledaču.",
       sources_title: "Zvanični izvori",
+      faq_title: "Često postavljana pitanja",
+      faq: [
+        { q: "Koliko iznosi carina za uvoz automobila na Kosovo?", a: "Standardna carinska stopa je 10% na carinsku vrednost (cena + transport + osiguranje). Sa važećim EUR.1 sertifikatom (poreklo EU) carina pada na 0%." },
+        { q: "Šta je akciza i kako se računa?", a: "Akciza zavisi od veličine motora, starosti vozila i vrste goriva. Veći i stariji motori plaćaju više. Električna vozila su izuzeta od akcize." },
+        { q: "Koliko iznosi PDV pri uvozu automobila?", a: "PDV iznosi 18% i računa se na zbir carinske vrednosti, carine i akcize." },
+        { q: "Mogu li uvesti automobil stariji od 10 godina?", a: "Ne. Po zakonu na Kosovu, vozila starija od 10 godina ne mogu se carinski oformiti ili registrovati. Takođe je potreban minimum Euro 4 standard." },
+        { q: "Šta mi donosi EUR.1 sertifikat?", a: "Sa EUR.1 sertifikatom (dokaz porekla iz EU) carina od 10% se potpuno ukida — to štedi oko €1.000 za automobil vredan €10.000." },
+        { q: "Da li je URA stvarno besplatna i koliko su rezultati precizni?", a: "Da, URA je potpuno besplatna, bez registracije i bez reklama. Svi iznosi su procene za orijentaciju — obavezujući obračun vrši Dogana e Kosovës prilikom uvoza." },
+      ],
     }
   };
   const c = content[lang];
   const card = { background: "linear-gradient(160deg,#141926,#10141f)", border: `1px solid ${C.line}`, borderRadius: 18, padding: "16px 18px", marginBottom: 14 };
+  const [openFaq, setOpenFaq] = useState(null);
+
+  // FAQPage structured data for SEO (injected once per language change)
+  useEffect(() => {
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": c.faq.map(f => ({
+        "@type": "Question",
+        "name": f.q,
+        "acceptedAnswer": { "@type": "Answer", "text": f.a },
+      })),
+    };
+    let el = document.getElementById("ura-faq-schema");
+    if (!el) {
+      el = document.createElement("script");
+      el.id = "ura-faq-schema";
+      el.type = "application/ld+json";
+      document.head.appendChild(el);
+    }
+    el.textContent = JSON.stringify(schema);
+    return () => { /* keep schema across tab switches */ };
+  }, [lang]);
 
   return (
     <div>
@@ -1162,6 +1221,19 @@ function InfoPage({ t, lang, C }) {
       <div style={card}>
         <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>{c.legal_title}</div>
         <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.65 }}>{c.legal}</p>
+      </div>
+
+      <div style={card}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>{c.faq_title}</div>
+        {c.faq.map((f, i) => (
+          <div key={i} style={{ borderTop: i > 0 ? `1px solid ${C.line}` : "none", paddingTop: i > 0 ? 10 : 0, marginTop: i > 0 ? 10 : 0 }}>
+            <button onClick={() => setOpenFaq(openFaq === i ? null : i)} style={{ width: "100%", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, background: "none", border: "none", cursor: "pointer", padding: 0, textAlign: "left", color: C.ink, fontSize: 13.5, fontWeight: 700, fontFamily: "inherit" }}>
+              <span>{f.q}</span>
+              <ChevronDown size={16} color={C.muted} style={{ flexShrink: 0, marginTop: 2, transform: openFaq === i ? "rotate(180deg)" : "none", transition: "transform .2s" }} />
+            </button>
+            {openFaq === i && <p style={{ fontSize: 12.5, color: C.muted, lineHeight: 1.6, marginTop: 8 }}>{f.a}</p>}
+          </div>
+        ))}
       </div>
 
       <div style={card}>
@@ -1396,6 +1468,12 @@ function ToolsMode({ lang, C, fmt }) {
   // Tool 4: Versicherung Kosovo
   const [insVal, setInsVal] = useState(10000);
 
+  // Tool 6: Finanzierungsrechner
+  const [finAmount, setFinAmount] = useState(8000);
+  const [finDown,   setFinDown]   = useState(1000);
+  const [finRate,   setFinRate]   = useState(7.5);
+  const [finTerm,   setFinTerm]   = useState(36);
+
   // Tool 5: Währungsrechner
   const [cAmt,  setCamt]  = useState(10000);
   const [cFrom, setCfrom] = useState("EUR");
@@ -1458,6 +1536,18 @@ function ToolsMode({ lang, C, fmt }) {
   const insYear  = Math.round(insVal * insRate);
   const insMonth = Math.round(insYear / 12);
 
+  // ── Finanzierung ─────────────────────────────────────────────────────────────
+  const finPay = useMemo(() => {
+    const P = Math.max(0, finAmount - finDown);
+    const r = finRate / 100 / 12;
+    const n = finTerm;
+    if (P <= 0) return 0;
+    if (r === 0) return P / n;
+    return (P * r) / (1 - Math.pow(1 + r, -n));
+  }, [finAmount, finDown, finRate, finTerm]);
+  const finTotal = finPay * finTerm;
+  const finInterest = Math.max(0, finTotal - (finAmount - finDown));
+
   // ── Currency ─────────────────────────────────────────────────────────────────
   const cResult = {};
   Object.keys(rates).forEach(cur => {
@@ -1466,7 +1556,7 @@ function ToolsMode({ lang, C, fmt }) {
 
   const L = (obj) => obj[lang] || obj["en"];
   const sectionTitle = { sq:"Mjete Falas", de:"Kostenlose Werkzeuge", en:"Free Tools", sr:"Besplatni Alati" };
-  const sectionSub   = { sq:"5 mjete falas për çdo blerës të mençur", de:"5 kostenlose Tools für jeden cleveren Käufer", en:"5 free tools for every smart buyer", sr:"5 besplatnih alata za svakog pametnog kupca" };
+  const sectionSub   = { sq:"6 mjete falas për çdo blerës të mençur", de:"6 kostenlose Tools für jeden cleveren Käufer", en:"6 free tools for every smart buyer", sr:"6 besplatnih alata za svakog pametnog kupca" };
 
   const cardStyle = { background: C.surface, border: `1px solid ${C.line}`, borderRadius: 20, padding: 22, marginBottom: 16 };
   const toolTitle = { fontWeight: 800, fontSize: 16, color: C.ink };
@@ -1673,6 +1763,64 @@ function ToolsMode({ lang, C, fmt }) {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* ── 6. Finanzierungsrechner ─────────────────────────────────────────── */}
+      <div style={cardStyle}>
+        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:18 }}>
+          <span style={{ fontSize:32 }}>🏦</span>
+          <div>
+            <div style={toolTitle}>{lang==="de"?"Finanzierungsrechner":lang==="sq"?"Llogaritja e kredisë":lang==="sr"?"Kalkulator kredita":"Loan calculator"}</div>
+            <div style={toolSub}>{lang==="de"?"Monatliche Rate für deinen Autokredit":lang==="sq"?"Këstet mujore për kredinë e veturës":lang==="sr"?"Mesečna rata za auto kredit":"Monthly installment for your car loan"}</div>
+          </div>
+        </div>
+
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:14 }}>
+          <div>
+            <div style={sliderLabel}>{lang==="de"?"Kreditbetrag":lang==="sq"?"Shuma e kredisë":lang==="sr"?"Iznos kredita":"Loan amount"} (€)</div>
+            <div style={sliderRow}>
+              <input type="range" min={500} max={40000} step={250} value={finAmount} onChange={e=>setFinAmount(+e.target.value)} style={{ flex:1, accentColor:C.blue }} />
+              <span style={{ fontWeight:800, color:C.ink, minWidth:70, textAlign:"right" }}>€{fmt(finAmount)}</span>
+            </div>
+          </div>
+          <div>
+            <div style={sliderLabel}>{lang==="de"?"Anzahlung":lang==="sq"?"Pagesa fillestare":lang==="sr"?"Učešće":"Down payment"} (€)</div>
+            <div style={sliderRow}>
+              <input type="range" min={0} max={Math.max(0, finAmount)} step={250} value={Math.min(finDown, finAmount)} onChange={e=>setFinDown(+e.target.value)} style={{ flex:1, accentColor:C.blue }} />
+              <span style={{ fontWeight:800, color:C.ink, minWidth:70, textAlign:"right" }}>€{fmt(finDown)}</span>
+            </div>
+          </div>
+          <div>
+            <div style={sliderLabel}>{lang==="de"?"Zinssatz":lang==="sq"?"Norma e interesit":lang==="sr"?"Kamatna stopa":"Interest rate"} (%/{lang==="de"?"Jahr":"yr"})</div>
+            <div style={sliderRow}>
+              <input type="range" min={0} max={20} step={0.5} value={finRate} onChange={e=>setFinRate(+e.target.value)} style={{ flex:1, accentColor:C.blue }} />
+              <span style={{ fontWeight:800, color:C.ink, minWidth:50, textAlign:"right" }}>{finRate.toFixed(1)}%</span>
+            </div>
+          </div>
+          <div>
+            <div style={sliderLabel}>{lang==="de"?"Laufzeit":lang==="sq"?"Afati":lang==="sr"?"Period":"Term"} ({lang==="de"?"Monate":lang==="sq"?"muaj":lang==="sr"?"meseci":"months"})</div>
+            <div style={sliderRow}>
+              <input type="range" min={6} max={84} step={6} value={finTerm} onChange={e=>setFinTerm(+e.target.value)} style={{ flex:1, accentColor:C.blue }} />
+              <span style={{ fontWeight:800, color:C.ink, minWidth:50, textAlign:"right" }}>{finTerm}</span>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
+          <div style={{ background:C.glass, borderRadius:14, padding:"14px 10px", textAlign:"center" }}>
+            <div style={{ fontSize:11, color:C.muted, marginBottom:5 }}>{lang==="de"?"Monatsrate":lang==="sq"?"Kësti mujor":lang==="sr"?"Mesečna rata":"Monthly"}</div>
+            <div style={{ fontWeight:800, fontSize:20, color:C.blue }}>€{fmt(Math.round(finPay))}</div>
+          </div>
+          <div style={{ background:C.glass, borderRadius:14, padding:"14px 10px", textAlign:"center" }}>
+            <div style={{ fontSize:11, color:C.muted, marginBottom:5 }}>{lang==="de"?"Gesamtkosten":lang==="sq"?"Kostoja totale":lang==="sr"?"Ukupan trošak":"Total cost"}</div>
+            <div style={{ fontWeight:800, fontSize:20, color:C.ink }}>€{fmt(Math.round(finTotal + finDown))}</div>
+          </div>
+          <div style={{ background:C.glass, borderRadius:14, padding:"14px 10px", textAlign:"center" }}>
+            <div style={{ fontSize:11, color:C.muted, marginBottom:5 }}>{lang==="de"?"Zinsen gesamt":lang==="sq"?"Interesi total":lang==="sr"?"Ukupna kamata":"Total interest"}</div>
+            <div style={{ fontWeight:800, fontSize:20, color:"#f59e0b" }}>€{fmt(Math.round(finInterest))}</div>
+          </div>
+        </div>
+        <div style={{ fontSize:11, color:C.muted, marginTop:12 }}>⚠️ {lang==="de"?"Schätzung. Tatsächliche Konditionen hängen von der Bank ab.":lang==="sq"?"Vlerësim. Kushtet aktuale varen nga banka.":lang==="sr"?"Procena. Stvarni uslovi zavise od banke.":"Estimate only. Actual terms depend on the bank."}</div>
       </div>
 
     </div>
