@@ -1992,6 +1992,15 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
       .ura-logo-box { width: 52px; height: 52px; font-size: 26px; border-radius: 16px; }
       .ura-wordmark { font-size: 28px; }
       .ura-tagline { font-size: 13px; }
+      .ura-tabs button { flex: 1 1 0 !important; font-size: 12px !important; }
+    }
+
+    @media (max-width: 639px) {
+      .ura-tabs button { font-size: 10px !important; padding: 9px 2px !important; gap: 3px !important; }
+    }
+
+    @media (max-width: 380px) {
+      .ura-tabs button { flex-basis: 47% !important; font-size: 10.5px !important; }
     }
 
     @media (min-width: 1024px) {
@@ -2144,12 +2153,14 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
       {/* Enhanced cost rows */}
       <div style={{ padding: "10px 20px 14px" }}>
         {costRows.map((r, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", padding: "8px 0", borderBottom: i < costRows.length - 1 ? `1px solid ${C.line}` : "none" }}>
-            <div style={{ width: 9, height: 9, borderRadius: 2, background: r.color, flexShrink: 0, marginRight: 10 }} />
-            <span style={{ flex: 1, fontSize: 13, fontWeight: r.strong ? 700 : 600, color: C.ink }}>{r.label}</span>
-            {r.hint && <span style={{ fontSize: 10.5, color: r.flag ? (fuel==="ev"?C.greenDeep:C.amber) : C.muted, fontWeight: 700, background: r.flag ? (fuel==="ev"?C.blueSoft:C.amberSoft) : C.paper, padding: "2px 7px", borderRadius: 8, marginRight: 8, whiteSpace: "nowrap" }}>{r.hint}</span>}
-            <span style={{ fontSize: 13.5, fontWeight: 700, color: C.ink, fontVariantNumeric: "tabular-nums", minWidth: 72, textAlign: "right" }}>€ {fmt(r.val)}</span>
-            <span style={{ fontSize: 11, fontWeight: 800, color: r.color, minWidth: 34, textAlign: "right", opacity: 0.85 }}>{calc.arrival > 0 ? Math.round(r.val / calc.arrival * 100) : 0}%</span>
+          <div key={i} style={{ padding: "8px 0", borderBottom: i < costRows.length - 1 ? `1px solid ${C.line}` : "none" }}>
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <div style={{ width: 9, height: 9, borderRadius: 2, background: r.color, flexShrink: 0, marginRight: 10 }} />
+              <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: r.strong ? 700 : 600, color: C.ink, overflow: "hidden", textOverflow: "ellipsis" }}>{r.label}</span>
+              <span style={{ fontSize: 13.5, fontWeight: 700, color: C.ink, fontVariantNumeric: "tabular-nums", minWidth: 72, textAlign: "right", flexShrink: 0 }}>€ {fmt(r.val)}</span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: r.color, minWidth: 34, textAlign: "right", opacity: 0.85, flexShrink: 0 }}>{calc.arrival > 0 ? Math.round(r.val / calc.arrival * 100) : 0}%</span>
+            </div>
+            {r.hint && <div style={{ marginTop: 5, marginLeft: 19 }}><span style={{ fontSize: 10.5, color: r.flag ? (fuel==="ev"?C.greenDeep:C.amber) : C.muted, fontWeight: 700, background: r.flag ? (fuel==="ev"?C.blueSoft:C.amberSoft) : C.paper, padding: "2px 7px", borderRadius: 8, display: "inline-block" }}>{r.hint}</span></div>}
           </div>
         ))}
         <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 0 2px", borderTop: `1px solid ${C.line}`, marginTop: 2 }}>
@@ -2262,9 +2273,9 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
           </div>
         </header>
 
-        <div className="ura-rise" style={{ display: "flex", gap: 5, background: C.glass, border: `1px solid ${C.line}`, borderRadius: 15, padding: 4, marginBottom: 24, animationDelay: ".05s" }}>
+        <div className="ura-rise ura-tabs" style={{ display: "flex", flexWrap: "wrap", gap: 5, background: C.glass, border: `1px solid ${C.line}`, borderRadius: 15, padding: 4, marginBottom: 24, animationDelay: ".05s" }}>
           {tabs.map((tb) => (
-            <button key={tb.id} onClick={() => setTab(tb.id)} style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5, border: "none", cursor: "pointer", fontFamily: "inherit", fontWeight: 700, fontSize: 11, padding: "10px 4px", borderRadius: 11, background: tab === tb.id ? C.blue : "transparent", color: tab === tb.id ? C.navy : C.muted, transition: "all .25s", boxShadow: tab === tb.id ? "0 6px 16px -6px rgba(201,166,90,.6)" : "none" }}>{tb.icon} {tb.label}</button>
+            <button key={tb.id} onClick={() => setTab(tb.id)} style={{ flex: "1 1 30%", minWidth: 0, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5, border: "none", cursor: "pointer", fontFamily: "inherit", fontWeight: 700, fontSize: 11, padding: "10px 4px", borderRadius: 11, background: tab === tb.id ? C.blue : "transparent", color: tab === tb.id ? C.navy : C.muted, transition: "all .25s", boxShadow: tab === tb.id ? "0 6px 16px -6px rgba(201,166,90,.6)" : "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tb.icon} {tb.label}</button>
           ))}
         </div>
 
