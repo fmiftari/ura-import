@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://fmiftari.github.io/ura-import/sitemap.xml
