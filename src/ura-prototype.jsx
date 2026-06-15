@@ -1474,6 +1474,29 @@ function ToolsMode({ lang, C, fmt }) {
   const [finRate,   setFinRate]   = useState(7.5);
   const [finTerm,   setFinTerm]   = useState(36);
 
+  // Tool 7: Dokumenten-Checkliste
+  const docItems = [
+    { id: "invoice",   sq: "Fatura / kontrata e blerjes",            de: "Rechnung / Kaufvertrag",                 en: "Invoice / purchase contract",          sr: "Faktura / kupoprodajni ugovor" },
+    { id: "regdoc",    sq: "Certifikata e regjistrimit (Teil I & II)", de: "Fahrzeugbrief (Zulassungsbescheinigung Teil I & II)", en: "Vehicle registration certificate (Parts I & II)", sr: "Saobraćajna dozvola (Deo I i II)" },
+    { id: "eur1",      sq: "Certifikata EUR.1 (nëse ka origjinë BE)", de: "EUR.1-Bescheinigung (falls EU-Ursprung)", en: "EUR.1 certificate (if EU origin)",     sr: "EUR.1 sertifikat (ako je poreklo EU)" },
+    { id: "insurance", sq: "Sigurimi ndërkombëtar (Karta Gjelbër)",    de: "Internationale Versicherung (Grüne Karte)", en: "International insurance (Green Card)", sr: "Međunarodno osiguranje (Zelena karta)" },
+    { id: "tuv",       sq: "Raporti i kontrollit teknik (TÜV/HU)",     de: "Technische Prüfbescheinigung (TÜV/HU)",  en: "Technical inspection report (TÜV/HU)", sr: "Izveštaj tehničkog pregleda (TÜV)" },
+    { id: "cmr",       sq: "Dokumenti i transportit (CMR)",            de: "Transport-/Frachtdokument (CMR)",        en: "Transport/freight document (CMR)",     sr: "Transportni dokument (CMR)" },
+    { id: "id",        sq: "Letërnjoftimi / Pasaporta",                de: "Personalausweis / Reisepass",            en: "ID card / passport",                   sr: "Lična karta / pasoš" },
+    { id: "customs",   sq: "Autorizimi për agjentin doganor (nëse përdoret)", de: "Zollvollmacht für den Spediteur (falls genutzt)", en: "Customs power of attorney (if using an agent)", sr: "Ovlašćenje za špeditera (ako se koristi)" },
+  ];
+  const [docChecklist, setDocChecklist] = useState(() => {
+    try {
+      const saved = localStorage.getItem("ura_doc_checklist");
+      return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("ura_doc_checklist", JSON.stringify(docChecklist)); } catch {}
+  }, [docChecklist]);
+  const toggleDoc = (id) => setDocChecklist(prev => ({ ...prev, [id]: !prev[id] }));
+  const docDoneCount = docItems.filter(it => docChecklist[it.id]).length;
+
   // Tool 5: Währungsrechner
   const [cAmt,  setCamt]  = useState(10000);
   const [cFrom, setCfrom] = useState("EUR");
@@ -1556,7 +1579,7 @@ function ToolsMode({ lang, C, fmt }) {
 
   const L = (obj) => obj[lang] || obj["en"];
   const sectionTitle = { sq:"Mjete Falas", de:"Kostenlose Werkzeuge", en:"Free Tools", sr:"Besplatni Alati" };
-  const sectionSub   = { sq:"6 mjete falas për çdo blerës të mençur", de:"6 kostenlose Tools für jeden cleveren Käufer", en:"6 free tools for every smart buyer", sr:"6 besplatnih alata za svakog pametnog kupca" };
+  const sectionSub   = { sq:"7 mjete falas për çdo blerës të mençur", de:"7 kostenlose Tools für jeden cleveren Käufer", en:"7 free tools for every smart buyer", sr:"7 besplatnih alata za svakog pametnog kupca" };
 
   const cardStyle = { background: C.surface, border: `1px solid ${C.line}`, borderRadius: 20, padding: 22, marginBottom: 16 };
   const toolTitle = { fontWeight: 800, fontSize: 16, color: C.ink };
@@ -1821,6 +1844,30 @@ function ToolsMode({ lang, C, fmt }) {
           </div>
         </div>
         <div style={{ fontSize:11, color:C.muted, marginTop:12 }}>⚠️ {lang==="de"?"Schätzung. Tatsächliche Konditionen hängen von der Bank ab.":lang==="sq"?"Vlerësim. Kushtet aktuale varen nga banka.":lang==="sr"?"Procena. Stvarni uslovi zavise od banke.":"Estimate only. Actual terms depend on the bank."}</div>
+      </div>
+
+      {/* ── 7. Dokumenten-Checkliste ─────────────────────────────────────────── */}
+      <div style={cardStyle}>
+        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:18 }}>
+          <span style={{ fontSize:32 }}>📋</span>
+          <div>
+            <div style={toolTitle}>{lang==="de"?"Dokumenten-Checkliste":lang==="sq"?"Lista e dokumenteve":lang==="sr"?"Lista dokumenata":"Document checklist"}</div>
+            <div style={toolSub}>{lang==="de"?"Was du für die Zollanmeldung brauchst":lang==="sq"?"Çka të duhet për zhdoganim":lang==="sr"?"Šta vam je potrebno za carinjenje":"What you need for customs clearance"}</div>
+          </div>
+        </div>
+
+        <div style={{ background:C.glass, borderRadius:12, padding:"10px 14px", marginBottom:14, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <span style={{ fontSize:13, fontWeight:700, color:C.muted }}>{lang==="de"?"Fortschritt":lang==="sq"?"Progresi":lang==="sr"?"Napredak":"Progress"}</span>
+          <span style={{ fontSize:15, fontWeight:800, color: docDoneCount === docItems.length ? "#22c55e" : C.blue }}>{docDoneCount} / {docItems.length}</span>
+        </div>
+
+        {docItems.map((it) => (
+          <label key={it.id} style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"8px 0", borderTop:`1px solid ${C.line}`, cursor:"pointer" }}>
+            <input type="checkbox" checked={!!docChecklist[it.id]} onChange={() => toggleDoc(it.id)} style={{ marginTop:3, width:16, height:16, accentColor:C.blue, flexShrink:0 }} />
+            <span style={{ fontSize:13, color: docChecklist[it.id] ? C.muted : C.ink, textDecoration: docChecklist[it.id] ? "line-through" : "none" }}>{lang==="de"?it.de:lang==="sq"?it.sq:lang==="sr"?it.sr:it.en}</span>
+          </label>
+        ))}
+        <div style={{ fontSize:11, color:C.muted, marginTop:12 }}>ℹ️ {lang==="de"?"Allgemeine Orientierung. Je nach Fall können weitere Dokumente nötig sein — Auskunft bei der Dogana e Kosovës.":lang==="sq"?"Orientim i përgjithshëm. Në varësi të rastit mund të kërkohen dokumente shtesë — kontaktoni Doganën e Kosovës.":lang==="sr"?"Opšta orijentacija. U zavisnosti od slučaja mogu biti potrebni dodatni dokumenti — informacije u Carini Kosova.":"General guidance only. Additional documents may be required depending on your case — check with Dogana e Kosovës."}</div>
       </div>
 
     </div>
