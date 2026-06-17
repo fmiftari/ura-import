@@ -158,6 +158,38 @@ const WMI_BRANDS = {
   // USA
   "1HG":"Honda(US)", "1FA":"Ford(US)", "2T1":"Toyota(US)",
   "1G1":"Chevrolet", "1GC":"Chevrolet", "3VW":"VW(MX)",
+  // Tesla (USA / Deutschland)
+  "5YJ":"Tesla", "7SA":"Tesla", "7G2":"Tesla", LRW:"Tesla(UK)",
+  // BYD (China)
+  "LS4":"BYD", "LS5":"BYD", "LGB":"BYD",
+  // Stellantis extra
+  "1C3":"Chrysler", "1C4":"Jeep", "1J4":"Jeep",
+  // Mitsubishi
+  JA3:"Mitsubishi", JA4:"Mitsubishi", JM7:"Mitsubishi", VF0:"Mitsubishi(FR)",
+  // Subaru
+  JF1:"Subaru", JF2:"Subaru",
+  // Suzuki
+  JS3:"Suzuki", JS2:"Suzuki",
+  // SEAT / CUPRA
+  VS7:"SEAT", VSE:"CUPRA",
+  // Toyota / Lexus (EU / UK)
+  SB1:"Toyota(UK)", SED:"Toyota(UK)", JT2:"Lexus", JT3:"Lexus", JT6:"Lexus",
+  // Nissan (EU / UK)
+  VNK:"Toyota(TR)", SJN:"Nissan(UK)",
+  // Renault extra
+  VF9:"Renault",
+  // Dacia extra
+  UU6:"Dacia",
+  // McLaren / Bentley / Rolls-Royce
+  SBM:"McLaren", SCA:"Rolls-Royce", SCB:"Bentley",
+  // Genesis / Hyundai extra
+  KM8:"Hyundai",
+  // Great Wall / Haval (China)
+  LGW:"Great Wall", LHG:"Haval",
+  // Mazda (EU)
+  JM3:"Mazda", MMM:"Mazda(EU)",
+  // MINI extra
+  BMT:"MINI",
 };
 
 // Modelljahr aus VIN-Zeichen 10 (ISO 3779)
@@ -168,18 +200,46 @@ const VIN_YEAR_MAP = {
   "8":2008,"9":2009,"0":2000,
 };
 
+// VIN Prüfziffer-Validierung (ISO 3779 / FMVSS)
+function vinCheckDigit(vin) {
+  const v = vin.toUpperCase();
+  const vals = {
+    '0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,
+    A:1,B:2,C:3,D:4,E:5,F:6,G:7,H:8,J:1,K:2,L:3,M:4,N:5,P:7,R:9,
+    S:2,T:3,U:4,V:5,W:6,X:7,Y:8,Z:9,
+  };
+  const weights = [8,7,6,5,4,3,2,10,0,9,8,7,6,5,4,3,2];
+  const sum = v.split("").reduce((acc, c, i) => acc + (vals[c] ?? 0) * weights[i], 0);
+  const rem = sum % 11;
+  const expected = rem === 10 ? "X" : String(rem);
+  return v[8] === expected;
+}
+
+// Ungültige VIN-Zeichen (I, O, Q verboten per ISO 3779)
+function vinInvalidChars(vin) {
+  return /[IOQ]/i.test(vin);
+}
+
 function decodeVinLocal(vin) {
   if (!vin || vin.length !== 17) return null;
-  const wmi = vin.slice(0, 3).toUpperCase();
-  const make = WMI_BRANDS[wmi] || WMI_BRANDS[vin.slice(0,2)] || null;
-  const yearChar = vin[9].toUpperCase();
+  const v = vin.toUpperCase();
+  const wmi = v.slice(0, 3);
+  const make = WMI_BRANDS[wmi] || WMI_BRANDS[v.slice(0,2)] || null;
+  const yearChar = v[9];
   const year = VIN_YEAR_MAP[yearChar] || null;
+  const plant = v[10]; // Montagewerk (Position 11)
+  const checkOk = vinCheckDigit(v);
+  const hasInvalid = vinInvalidChars(v);
   // Euro-Norm aus Baujahr schätzen
   const euro = !year ? 6 : year >= 2021 ? 6 : year >= 2015 ? 6 : year >= 2011 ? 5 : year >= 2006 ? 4 : year >= 2001 ? 3 : 2;
-  return make ? { make, year, euro } : null;
+  return { make, year, euro, wmi, plant, yearChar, checkOk, hasInvalid };
 }
 
 const DEMO_VEHICLES = {
+  // VW
+  // Tesla
+  "TESLA3":       { make: "Tesla",       model: "Model 3",             category: "car", cc: 0,    fuel: "ev",      euro: 6, year: 2022 },
+  "TESLAY":       { make: "Tesla",       model: "Model Y",             category: "car", cc: 0,    fuel: "ev",      euro: 6, year: 2023 },
   // VW
   "GOLF7TDI":     { make: "Volkswagen", model: "Golf 7 2.0 TDI",     category: "car", cc: 1968, fuel: "diesel",  euro: 6, year: 2018 },
   "GOLF8":        { make: "Volkswagen", model: "Golf 8 1.5 TSI",      category: "car", cc: 1498, fuel: "petrol",  euro: 6, year: 2021 },
@@ -2513,9 +2573,59 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
               <div className="card ura-rise" style={{ padding: 18, marginBottom: 14, animationDelay: ".12s" }}>
                 <label style={lbl}>{t.identify}</label>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <input style={{ ...inputBox, flex: 1 }} value={ident} placeholder="WVWZZZ... / GOLF7TDI" onChange={(e) => { setIdent(e.target.value); setRecMsg(null); }} />
+                  <input
+                    style={{ ...inputBox, flex: 1, fontFamily: "monospace", letterSpacing: 1, textTransform: "uppercase" }}
+                    value={ident}
+                    placeholder="WVWZZZ... / GOLF7TDI"
+                    maxLength={17}
+                    onChange={(e) => { setIdent(e.target.value.toUpperCase()); setRecMsg(null); }}
+                    onKeyDown={(e) => { if (e.key === "Enter") recognize(); }}
+                  />
                   <button onClick={() => recognize()} disabled={recLoading} style={{ display: "inline-flex", alignItems: "center", gap: 7, background: recLoading ? C.muted : C.blue, color: C.navy, border: "none", borderRadius: 12, padding: "0 16px", fontFamily: "inherit", fontWeight: 700, fontSize: 13.5, cursor: recLoading ? "wait" : "pointer", whiteSpace: "nowrap" }}><ScanLine size={16} /> {recLoading ? t.recLoad : t.recognize}</button>
                 </div>
+
+                {/* ── VIN Struktur-Visualizer ── */}
+                {ident.replace(/[^A-Z0-9]/g,"").length === 17 && (() => {
+                  const v = ident.replace(/[^A-Z0-9]/g,"").toUpperCase();
+                  const local = decodeVinLocal(v);
+                  const checkOk = local?.checkOk;
+                  const hasInvalid = /[IOQ]/.test(v);
+                  const segments = [
+                    { chars: v.slice(0,3),  color: "#3b82f6", label: lang==="de"?"Hersteller (WMI)":lang==="sq"?"Prodhuesi (WMI)":lang==="sr"?"Proizvođač (WMI)":"Manufacturer (WMI)", tip: local?.make || "?" },
+                    { chars: v.slice(3,9),  color: "#f59e0b", label: lang==="de"?"Fahrzeugmerkmale (VDS)":lang==="sq"?"Karakteristikat (VDS)":lang==="sr"?"Karakteristike (VDS)":"Vehicle Descriptor (VDS)", tip: lang==="de"?"Modell, Motor, Karosserie":lang==="sq"?"Model, motor, karrocerinë":lang==="sr"?"Model, motor, karoserija":"Model, engine, body" },
+                    { chars: v.slice(9,10), color: "#22c55e", label: lang==="de"?"Modelljahr":lang==="sq"?"Viti":lang==="sr"?"Godište":"Model Year", tip: local?.year ? String(local.year) : "?" },
+                    { chars: v.slice(10,11),color: "#a78bfa", label: lang==="de"?"Werk":lang==="sq"?"Fabrika":lang==="sr"?"Fabrika":"Plant", tip: local?.plant || "?" },
+                    { chars: v.slice(11,17),color: "#64748b", label: lang==="de"?"Seriennummer":lang==="sq"?"Numri serial":lang==="sr"?"Serijski broj":"Serial No.", tip: "" },
+                  ];
+                  return (
+                    <div style={{ marginTop: 12, background: "#0a0e1780", borderRadius: 10, padding: "10px 12px" }}>
+                      <div style={{ display: "flex", gap: 1, marginBottom: 8, fontFamily: "monospace", fontSize: 13, fontWeight: 800 }}>
+                        {segments.map((seg, si) => seg.chars.split("").map((ch, ci) => (
+                          <span key={`${si}-${ci}`} style={{ background: seg.color + "25", color: seg.color, border: `1px solid ${seg.color}50`, borderRadius: 4, width: 20, height: 24, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>{ch}</span>
+                        )))}
+                      </div>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
+                        {segments.map((seg, si) => (
+                          <div key={si} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                            <span style={{ width: 8, height: 8, borderRadius: 2, background: seg.color, display: "inline-block" }} />
+                            <span style={{ fontSize: 10, color: seg.color, fontWeight: 700 }}>{seg.label}{seg.tip ? `: ${seg.tip}` : ""}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 10.5, fontWeight: 700, color: checkOk ? "#22c55e" : "#ef4444", background: checkOk ? "#22c55e15" : "#ef444415", borderRadius: 8, padding: "3px 8px" }}>
+                          {checkOk ? (lang==="de"?"✅ Prüfziffer OK":lang==="sq"?"✅ Shifra kontrolluese OK":lang==="sr"?"✅ Kontrolna cifra OK":"✅ Check digit OK") : (lang==="de"?"⚠️ Prüfziffer ungültig":lang==="sq"?"⚠️ Shifra kontrolluese gabim":lang==="sr"?"⚠️ Kontrolna cifra neispravna":"⚠️ Check digit invalid")}
+                        </span>
+                        {hasInvalid && (
+                          <span style={{ fontSize: 10.5, fontWeight: 700, color: "#ef4444", background: "#ef444415", borderRadius: 8, padding: "3px 8px" }}>
+                            {lang==="de"?"⚠️ I/O/Q verboten in VIN":lang==="sq"?"⚠️ I/O/Q nuk lejohen në VIN":lang==="sr"?"⚠️ I/O/Q zabranjeni u VIN":"⚠️ I/O/Q not allowed in VIN"}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 <div style={{ fontSize: 11.5, fontWeight: 700, marginTop: 8, color: recMsg ? (recMsg.ok ? C.greenDeep : C.red) : C.muted }}>
                   {recLoading ? t.recLoad : recMsg ? (recMsg.ok ? (recMsg.partial ? (lang==="de"?"⚡ Hersteller erkannt":lang==="sq"?"⚡ Prodhuesi u njoh":lang==="sr"?"⚡ Proizvođač prepoznat":"⚡ Make recognized") : t.recOk) : recMsg.net ? t.recNet : t.recNo) : t.recHint}
                 </div>
@@ -2544,10 +2654,37 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                   </div>
                 )}
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
-                  {["SANDERO","TUCSON","SPORTAGE","GOLF7TDI","P308","BMW320D","EV6","IONIQ5","OCTAVIA","CAPTUR"].map((k) => (
+                  {["SANDERO","TUCSON","SPORTAGE","GOLF7TDI","P308","BMW320D","EV6","IONIQ5","OCTAVIA","CAPTUR","TESLA3"].map((k) => (
                     <button key={k} onClick={() => { setIdent(k); recognize(k); }} style={{ background: C.glass, border: `1px solid ${C.blue}`, borderRadius: 20, padding: "6px 12px", fontFamily: "inherit", fontSize: 11.5, fontWeight: 700, color: C.blue, cursor: "pointer", letterSpacing: .5 }}>{k}</button>
                   ))}
                 </div>
+
+                {/* ── HSN-TSN Info ── */}
+                <details style={{ marginTop: 12 }}>
+                  <summary style={{ fontSize: 11.5, fontWeight: 700, color: C.muted, cursor: "pointer", userSelect: "none" }}>
+                    ℹ️ {lang==="de"?"Was ist HSN-TSN / Typenschein?":lang==="sq"?"Çfarë është HSN-TSN / Typenschein?":lang==="sr"?"Šta je HSN-TSN / Typenschein?":"What is HSN-TSN / Type Certificate?"}
+                  </summary>
+                  <div style={{ marginTop: 8, fontSize: 11.5, color: C.muted, lineHeight: 1.6, background: C.glass, borderRadius: 10, padding: "10px 12px" }}>
+                    {lang==="de" ? <>
+                      <b style={{ color: C.ink }}>HSN</b> = Herstellerschlüsselnummer (4-stellig) · <b style={{ color: C.ink }}>TSN</b> = Typschlüsselnummer (3-stellig)<br/>
+                      Beispiel im Fahrzeugschein (Feld 2.1 + 2.2): <code style={{ background:"#ffffff10", padding:"1px 5px", borderRadius:4 }}>0005 ABB</code><br/>
+                      Die FIN (Fahrzeug-Identifizierungsnummer) = VIN, 17 Zeichen, steht im Fahrzeugbrief unter Feld E.<br/>
+                      <span style={{ color: C.amber }}>⚠️ Für die Einfuhr nach Kosovo/AL/MK benötigst du den <b>Zulassungsbescheinigung Teil II</b> (Fahrzeugbrief) im Original.</span>
+                    </> : lang==="sq" ? <>
+                      <b style={{ color: C.ink }}>HSN</b> = kodi i prodhuesit (4 shifra) · <b style={{ color: C.ink }}>TSN</b> = kodi i tipit (3 shifra) — nga letrat gjermane të veturës<br/>
+                      FIN (Fahrzeug-Identifizierungsnummer) = VIN, 17 karaktere, ndodhet në fushën E të librezës<br/>
+                      <span style={{ color: C.amber }}>⚠️ Për import duhet origjinali i <b>Zulassungsbescheinigung Teil II</b> (libreza e veturës).</span>
+                    </> : lang==="sr" ? <>
+                      <b style={{ color: C.ink }}>HSN</b> = šifra proizvođača (4 cifre) · <b style={{ color: C.ink }}>TSN</b> = šifra tipa (3 cifre) — iz nemačkih dokumenata vozila<br/>
+                      FIN = VIN, 17 znakova, nalazi se u polju E saobraćajne dozvole<br/>
+                      <span style={{ color: C.amber }}>⚠️ Za uvoz je potreban original <b>Zulassungsbescheinigung Teil II</b>.</span>
+                    </> : <>
+                      <b style={{ color: C.ink }}>HSN</b> = Manufacturer key (4 digits) · <b style={{ color: C.ink }}>TSN</b> = Type key (3 digits) — from German vehicle documents<br/>
+                      FIN = VIN, 17 characters, found in field E of the vehicle registration certificate<br/>
+                      <span style={{ color: C.amber }}>⚠️ For import you need the original <b>Zulassungsbescheinigung Teil II</b> (vehicle title).</span>
+                    </>}
+                  </div>
+                </details>
               </div>
               <div className="card ura-rise" style={{ padding: 18, marginBottom: 16, animationDelay: ".18s" }}>
                 <div className="form-grid">
