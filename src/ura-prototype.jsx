@@ -2254,7 +2254,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
   ].filter(r => r.val > 0);
 
   const tabs = [
-    { id: "wizard",  label: lang==="de"?"Einfach":lang==="en"?"Easy":lang==="sq"?"Lehtë":"Lako",       icon: <Home size={15} /> },
+    { id: "wizard",  label: lang==="de"?"Startseite":lang==="en"?"Home":lang==="sq"?"Kryefaqja":"Početna", icon: <Home size={15} /> },
     { id: "calc",    label: t.tabCalc,                                                                   icon: <Calculator size={15} /> },
     { id: "compare", label: lang==="de"?"Vergleich":lang==="en"?"Compare":lang==="sq"?"Krahaso":"Poredi",icon: <GitCompare size={15} /> },
     { id: "tools",   label: lang==="de"?"Werkzeuge":lang==="en"?"Tools":lang==="sq"?"Mjete":"Alati",     icon: <Wrench size={15} /> },
