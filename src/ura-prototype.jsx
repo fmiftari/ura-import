@@ -1640,6 +1640,15 @@ function ToolsMode({ lang, C, fmt }) {
   const L = (obj) => obj[lang] || obj["en"];
   const sectionTitle = { sq:"Mjete Falas", de:"Kostenlose Werkzeuge", en:"Free Tools", sr:"Besplatni Alati" };
   const sectionSub   = { sq:"7 mjete falas për çdo blerës të mençur", de:"7 kostenlose Tools für jeden cleveren Käufer", en:"7 free tools for every smart buyer", sr:"7 besplatnih alata za svakog pametnog kupca" };
+  const TOOL_NAV = [
+    { id:"t1", emoji:"🚦", label:{ de:"Import-Ampel", sq:"Semafor",      sr:"Semafor",    en:"Import check" } },
+    { id:"t2", emoji:"🔢",  label:{ de:"KM-Check",    sq:"KM-Kontrolë",  sr:"KM-Check",   en:"KM check" } },
+    { id:"t3", emoji:"⛽", label:{ de:"Spritkosten",  sq:"Karburanti",   sr:"Gorivo",     en:"Fuel costs" } },
+    { id:"t4", emoji:"🛡️", label:{ de:"Versicherung", sq:"Sigurimi",     sr:"Osiguranje", en:"Insurance" } },
+    { id:"t5", emoji:"💱", label:{ de:"Währung",      sq:"Valuta",       sr:"Valuta",     en:"Currency" } },
+    { id:"t6", emoji:"💳", label:{ de:"Finanzierung", sq:"Financimi",    sr:"Finansiranje", en:"Finance" } },
+    { id:"t7", emoji:"📋", label:{ de:"Checkliste",   sq:"Lista",        sr:"Cheklista",  en:"Checklist" } },
+  ];
 
   const cardStyle = { background: C.surface, border: `1px solid ${C.line}`, borderRadius: 20, padding: 22, marginBottom: 16 };
   const toolTitle = { fontWeight: 800, fontSize: 16, color: C.ink };
@@ -1650,10 +1659,18 @@ function ToolsMode({ lang, C, fmt }) {
   return (
     <div style={{ padding:"24px 0" }}>
       <div style={{ fontFamily:"'Fraunces',serif", fontWeight:800, fontSize:26, color:C.ink, marginBottom:4 }}>{L(sectionTitle)}</div>
-      <div style={{ fontSize:14, color:C.muted, marginBottom:28 }}>{L(sectionSub)}</div>
+      <div style={{ fontSize:14, color:C.muted, marginBottom:14 }}>{L(sectionSub)}</div>
+      <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:22 }}>
+        {TOOL_NAV.map(tn => (
+          <a key={tn.id} href={`#tool-${tn.id}`} style={{ textDecoration:"none", display:"inline-flex", alignItems:"center", gap:5, background:C.glass, border:`1px solid ${C.line}`, borderRadius:20, padding:"6px 12px", fontSize:12, fontWeight:700, color:C.muted, cursor:"pointer" }}
+            onClick={(e) => { e.preventDefault(); document.getElementById(`tool-${tn.id}`)?.scrollIntoView({ behavior:"smooth", block:"start" }); }}>
+            {tn.emoji} {tn.label[lang] || tn.label.en}
+          </a>
+        ))}
+      </div>
 
       {/* ── 1. Import-Ampel ─────────────────────────────────────────────────── */}
-      <div style={cardStyle}>
+      <div id="t1" style={cardStyle}>
         <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:18 }}>
           <span style={{ fontSize:32 }}>🚦</span>
           <div>
@@ -1696,7 +1713,7 @@ function ToolsMode({ lang, C, fmt }) {
       </div>
 
       {/* ── 2. KM-Check ──────────────────────────────────────────────────────── */}
-      <div style={cardStyle}>
+      <div id="t2" style={cardStyle}>
         <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:18 }}>
           <span style={{ fontSize:32 }}>🔍</span>
           <div>
@@ -1741,7 +1758,7 @@ function ToolsMode({ lang, C, fmt }) {
       </div>
 
       {/* ── 3. Kraftstoffkosten ──────────────────────────────────────────────── */}
-      <div style={cardStyle}>
+      <div id="t3" style={cardStyle}>
         <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:18 }}>
           <span style={{ fontSize:32 }}>⛽</span>
           <div>
@@ -1781,7 +1798,7 @@ function ToolsMode({ lang, C, fmt }) {
       </div>
 
       {/* ── 4. Kosovo Versicherung ───────────────────────────────────────────── */}
-      <div style={cardStyle}>
+      <div id="t4" style={cardStyle}>
         <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:18 }}>
           <span style={{ fontSize:32 }}>🛡️</span>
           <div>
@@ -1814,7 +1831,7 @@ function ToolsMode({ lang, C, fmt }) {
       </div>
 
       {/* ── 5. Währungsrechner ───────────────────────────────────────────────── */}
-      <div style={cardStyle}>
+      <div id="t5" style={cardStyle}>
         <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:4 }}>
           <span style={{ fontSize:32 }}>💱</span>
           <div>
@@ -1849,7 +1866,7 @@ function ToolsMode({ lang, C, fmt }) {
       </div>
 
       {/* ── 6. Finanzierungsrechner ─────────────────────────────────────────── */}
-      <div style={cardStyle}>
+      <div id="t6" style={cardStyle}>
         <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:18 }}>
           <span style={{ fontSize:32 }}>🏦</span>
           <div>
@@ -1907,7 +1924,7 @@ function ToolsMode({ lang, C, fmt }) {
       </div>
 
       {/* ── 7. Dokumenten-Checkliste ─────────────────────────────────────────── */}
-      <div style={cardStyle}>
+      <div id="t7" style={cardStyle}>
         <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:18 }}>
           <span style={{ fontSize:32 }}>📋</span>
           <div>
@@ -2022,6 +2039,7 @@ export default function App() {
   const [isNew, setIsNew] = useState(false);
   const [hasEur1, setHasEur1] = useState(false);
   const [isReturner, setIsReturner] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [savedCalcs, setSavedCalcs] = useState(() => {
     try { return JSON.parse(localStorage.getItem("ura_saved_calcs") || "[]"); } catch { return []; }
   });
@@ -2642,7 +2660,36 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
         </div>
 
         {tab === "wizard" && (
-          <WizardMode t={t} lang={lang} C={C} fmt={fmt} />
+          <div>
+            {/* ── Hero ── */}
+            <div style={{ background: "linear-gradient(135deg,rgba(201,166,90,.12),rgba(59,130,246,.08))", border: `1px solid ${C.line}`, borderRadius: 20, padding: "22px 20px 18px", marginBottom: 20 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+                <span style={{ fontSize: 36 }}>🚗</span>
+                <div>
+                  <div style={{ fontFamily: "'Fraunces',serif", fontWeight: 800, fontSize: 22, color: C.ink, lineHeight: 1.1 }}>
+                    {lang==="de"?"Was kostet dein Auto wirklich bis Kosovo?":lang==="sq"?"Sa kushton vërtet vetura deri në Kosovë?":lang==="sr"?"Koliko zaista košta auto do Kosova?":"What does your car really cost to Kosovo?"}
+                  </div>
+                  <div style={{ fontSize: 12.5, color: C.muted, fontWeight: 600, marginTop: 4 }}>
+                    {lang==="de"?"Zoll · Akzise · MwSt. · Transport — alles in 30 Sekunden":lang==="sq"?"Dogana · Akciza · TVSH · Transport — gjithçka brenda 30 sekondave":lang==="sr"?"Carina · Akciza · PDV · Transport — sve za 30 sekundi":"Customs · Excise · VAT · Transport — everything in 30 seconds"}
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {[
+                  { icon: "✅", text: lang==="de"?"Kostenlos":lang==="sq"?"Falas":lang==="sr"?"Besplatno":"Free" },
+                  { icon: "✅", text: lang==="de"?"Kein Login":lang==="sq"?"Pa regjistrim":lang==="sr"?"Bez registracije":"No sign-up" },
+                  { icon: "✅", text: lang==="de"?"XK · AL · MK":"XK · AL · MK" },
+                  { icon: "✅", text: lang==="de"?"Offizielle Akzise-Tabelle":lang==="sq"?"Tabelë zyrtare akcize":lang==="sr"?"Zvanična tabela akcize":"Official excise table" },
+                ].map((b, i) => (
+                  <span key={i} style={{ fontSize: 11.5, fontWeight: 700, color: C.muted, background: C.glass, borderRadius: 20, padding: "4px 10px" }}>{b.icon} {b.text}</span>
+                ))}
+              </div>
+              <button onClick={() => setTab("calc")} style={{ marginTop: 14, width: "100%", background: C.blue, color: C.navy, border: "none", borderRadius: 13, padding: "12px", fontFamily: "inherit", fontWeight: 800, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                <Calculator size={16} /> {lang==="de"?"Profi-Rechner öffnen":lang==="sq"?"Hap kalkulatorin profesional":lang==="sr"?"Otvori profesionalni kalkulator":"Open advanced calculator"}
+              </button>
+            </div>
+            <WizardMode t={t} lang={lang} C={C} fmt={fmt} />
+          </div>
         )}
 
         {tab === "compare" && (
@@ -2794,35 +2841,50 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                 </details>
               </div>
               <div className="card ura-rise" style={{ padding: 18, marginBottom: 16, animationDelay: ".18s" }}>
+                {/* ── Basis-Felder (immer sichtbar) ── */}
                 <div className="form-grid">
                   <div><label style={lbl}>{t.destCountry}</label><Select label={t.destCountry} value={destCountry} onChange={(e) => setDestCountry(e.target.value)}><option value="XK">{t.destXK}</option><option value="AL">{t.destAL}</option><option value="MK">{t.destMK}</option></Select></div>
-                  <div><label style={lbl}>{t.category}</label><Select label={t.category} value={category} onChange={(e) => setCategory(e.target.value)}><option value="car">{t.catCar}</option><option value="van">{t.catVan}</option><option value="truck">{t.catTruck}</option><option value="moto">{t.catMoto}</option></Select></div>
+                  <div><label style={lbl}>{t.price}</label><input style={errors.price ? inputErr : inputBox} type="number" value={price} onChange={(e) => { const v = +e.target.value; setPrice(v); validate("price", v); }} />{errors.price && <div style={{ fontSize: 11, color: C.red, marginTop: 4 }}>{errors.price}</div>}</div>
                   <div><label style={lbl}>{t.year}</label><input style={errors.year ? inputErr : inputBox} type="number" value={year} onChange={(e) => { const v = +e.target.value; setYear(v); validate("year", v); }} />{errors.year && <div style={{ fontSize: 11, color: C.red, marginTop: 4 }}>{errors.year}</div>}</div>
-                  <div><label style={lbl}>{t.make}</label><input style={inputBox} value={make} onChange={(e) => setMake(e.target.value)} /></div>
-                  <div><label style={lbl}>{t.model}</label><input style={inputBox} value={model} onChange={(e) => setModel(e.target.value)} /></div>
-                        <div><label style={lbl}>{t.engine}</label><input style={errors.engine ? inputErr : inputBox} type="number" value={engine} onChange={(e) => { const v = +e.target.value; setEngine(v); validate("engine", v); }} />{errors.engine && <div style={{ fontSize: 11, color: C.red, marginTop: 4 }}>{errors.engine}</div>}</div>
+                  <div><label style={lbl}>{t.engine}</label><input style={errors.engine ? inputErr : inputBox} type="number" value={engine} onChange={(e) => { const v = +e.target.value; setEngine(v); validate("engine", v); }} />{errors.engine && <div style={{ fontSize: 11, color: C.red, marginTop: 4 }}>{errors.engine}</div>}</div>
                   <div><label style={lbl}>{t.fuel}</label><Select label={t.fuel} value={fuel} onChange={(e) => setFuel(e.target.value)}><option value="petrol">{FUEL.petrol[lang]}</option><option value="diesel">{FUEL.diesel[lang]}</option><option value="hybrid">{FUEL.hybrid[lang]}</option><option value="ev">{FUEL.ev[lang]}</option></Select></div>
-                  <div><label style={lbl}>{t.origin}</label><Select label={t.origin} value={origin} onChange={(e) => { setOrigin(e.target.value); if (e.target.value === "KR") setHasEur1(false); }}>{Object.keys(ORIGIN).map(k => <option key={k} value={k}>{originName(k, lang)}</option>)}</Select></div>
-                  <div><label style={lbl}>{t.euro}</label><input style={inputBox} type="number" min={1} max={7} value={euro} onChange={(e) => setEuro(+e.target.value)} /></div>
-                  <div><label style={lbl}>{t.hs}</label><input style={inputBox} value={hs} onChange={(e) => setHs(e.target.value)} /></div>
+                  <div><label style={lbl}>{t.transport}</label><input style={inputBox} type="number" value={transport} onChange={(e) => { setTransport(+e.target.value); setTransportTouched(true); }} /></div>
                 </div>
+
+                {/* ── Toggles ── */}
                 <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 8 }}>
                   {origin !== "KR" && destCountry !== "AL" && <Toggle on={hasEur1} set={setHasEur1} label={t.fEur1} />}
                   <Toggle on={isNew} set={setIsNew} label={t.fNew} />
-                  {destCountry === "XK" && <Toggle on={isReturner} set={(v) => { setIsReturner(v); if (v) setHasEur1(false); }} label={lang==="de"?"🏠 Rückkehrer (Zollbefreiung)":lang==="sq"?"🏠 Kthyes (Liri doganore)":lang==="sr"?"🏠 Povratnik (Oslobođenje carine)":"🏠 Returnee (Customs exemption)"} />}
+                  {destCountry === "XK" && <Toggle on={isReturner} set={(v) => { setIsReturner(v); if (v) setHasEur1(false); }} label={lang==="de"?"🏠 Rückkehrer":lang==="sq"?"🏠 Kthyes":lang==="sr"?"🏠 Povratnik":"🏠 Returnee"} />}
                 </div>
-                {origin === "KR" && (
-                  <div style={{ marginTop: 8, fontSize: 11.5, color: "#f59e0b", fontWeight: 600, background: "#f59e0b12", borderRadius: 10, padding: "7px 11px" }}>
-                    🇰🇷 {lang === "de" ? "Korea-Import: kein EUR.1 — 10% Zoll gilt" : lang === "sq" ? "Import nga Koreja: pa EUR.1 — zbatohet doganë 10%" : lang === "sr" ? "Uvoz iz Koreje: bez EUR.1 — važi carina 10%" : "Korea import: EUR.1 not applicable — 10% customs applies"}
+
+                {/* ── Erweitert-Toggle ── */}
+                <button onClick={() => setShowAdvanced(s => !s)} style={{ marginTop: 14, width: "100%", background: "none", border: `1px dashed ${C.line}`, borderRadius: 10, padding: "9px 14px", cursor: "pointer", fontFamily: "inherit", fontSize: 12, fontWeight: 700, color: C.muted, display: "flex", alignItems: "center", gap: 6 }}>
+                  <ChevronDown size={13} style={{ transform: showAdvanced ? "rotate(180deg)" : "none", transition: "transform .2s" }} />
+                  {showAdvanced
+                    ? (lang==="de"?"Weniger Felder":lang==="sq"?"Më pak fusha":lang==="sr"?"Manje polja":"Fewer fields")
+                    : (lang==="de"?"Erweitert (Marke, Modell, Herkunft…)":lang==="sq"?"Avancuar (Marka, Modeli, Origjina…)":lang==="sr"?"Napredno (Marka, Model, Poreklo…)":"Advanced (Make, Model, Origin…)")}
+                </button>
+
+                {/* ── Erweiterte Felder ── */}
+                {showAdvanced && (
+                  <div style={{ marginTop: 10 }}>
+                    <div className="form-grid">
+                      <div><label style={lbl}>{t.make}</label><input style={inputBox} value={make} onChange={(e) => setMake(e.target.value)} /></div>
+                      <div><label style={lbl}>{t.model}</label><input style={inputBox} value={model} onChange={(e) => setModel(e.target.value)} /></div>
+                      <div><label style={lbl}>{t.category}</label><Select label={t.category} value={category} onChange={(e) => setCategory(e.target.value)}><option value="car">{t.catCar}</option><option value="van">{t.catVan}</option><option value="truck">{t.catTruck}</option><option value="moto">{t.catMoto}</option></Select></div>
+                      <div><label style={lbl}>{t.origin}</label><Select label={t.origin} value={origin} onChange={(e) => { setOrigin(e.target.value); if (e.target.value === "KR") setHasEur1(false); }}>{Object.keys(ORIGIN).map(k => <option key={k} value={k}>{originName(k, lang)}</option>)}</Select></div>
+                      <div><label style={lbl}>{t.euro}</label><input style={inputBox} type="number" min={1} max={7} value={euro} onChange={(e) => setEuro(+e.target.value)} /></div>
+                      <div><label style={lbl}>{t.insurance}</label><input style={inputBox} type="number" value={insurance} onChange={(e) => setInsurance(+e.target.value)} /></div>
+                      <div><label style={lbl}>{t.hs}</label><input style={inputBox} value={hs} onChange={(e) => setHs(e.target.value)} /></div>
+                    </div>
+                    {origin === "KR" && (
+                      <div style={{ marginTop: 8, fontSize: 11.5, color: "#f59e0b", fontWeight: 600, background: "#f59e0b12", borderRadius: 10, padding: "7px 11px" }}>
+                        🇰🇷 {lang === "de" ? "Korea-Import: kein EUR.1 — 10% Zoll gilt" : lang === "sq" ? "Import nga Koreja: pa EUR.1 — zbatohet doganë 10%" : lang === "sr" ? "Uvoz iz Koreje: bez EUR.1 — važi carina 10%" : "Korea import: EUR.1 not applicable — 10% customs applies"}
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
-              <div className="card ura-rise" style={{ padding: 18, marginBottom: 16, animationDelay: ".22s" }}>
-                <div className="form-grid">
-                  <div><label style={lbl}>{t.price}</label><input style={errors.price ? inputErr : inputBox} type="number" value={price} onChange={(e) => { const v = +e.target.value; setPrice(v); validate("price", v); }} />{errors.price && <div style={{ fontSize: 11, color: C.red, marginTop: 4 }}>{errors.price}</div>}</div>
-                  <div><label style={lbl}>{t.transport}</label><input style={inputBox} type="number" value={transport} onChange={(e) => { setTransport(+e.target.value); setTransportTouched(true); }} /></div>
-                  <div><label style={lbl}>{t.insurance}</label><input style={inputBox} type="number" value={insurance} onChange={(e) => setInsurance(+e.target.value)} /></div>
-                </div>
               </div>
             </div>
 
