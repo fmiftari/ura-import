@@ -625,7 +625,7 @@ function computeCatalogValue({ cc, ageYears }) {
 // Einheitliche Import-Kostenberechnung für alle Zielländer (XK/AL/MK).
 // Wird vom Hauptrechner, Wizard- und Vergleichsmodus gemeinsam verwendet,
 // damit die Endbeträge in allen Modi konsistent und korrekt sind.
-function computeImportCost({ destCountry, price, transport = 0, insurance = 0, engine = 0, ageYears = 0, isNew = false, fuel = "diesel", hasEur1 = false, vatRefundRate = 0, catalogValue = null }) {
+function computeImportCost({ destCountry, price, transport = 0, insurance = 0, engine = 0, ageYears = 0, isNew = false, fuel = "diesel", hasEur1 = false, vatRefundRate = 0, catalogValue = null, isReturner = false }) {
   const cif = price + transport + insurance;
   if (destCountry === "AL") {
     const customs = 0;
@@ -659,7 +659,7 @@ function computeImportCost({ destCountry, price, transport = 0, insurance = 0, e
   }
   // Kosovo (XK) — Standard
   const taxBase = price;
-  const customs = hasEur1 ? 0 : taxBase * TAX_CONFIG.customsRate;
+  const customs = (hasEur1 || isReturner) ? 0 : taxBase * TAX_CONFIG.customsRate;
   const excise = computeExcise({ cc: engine, ageYears, isNewUnregistered: isNew, fuel });
   const vatBase = taxBase + customs + excise;
   const vat = vatBase * TAX_CONFIG.vatRate;
@@ -2021,6 +2021,11 @@ export default function App() {
   const [hs, setHs] = useState("8703 32");
   const [isNew, setIsNew] = useState(false);
   const [hasEur1, setHasEur1] = useState(false);
+  const [isReturner, setIsReturner] = useState(false);
+  const [savedCalcs, setSavedCalcs] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("ura_saved_calcs") || "[]"); } catch { return []; }
+  });
+  const [showSaved, setShowSaved] = useState(false);
   const [showMethod, setShowMethod] = useState(false);
   const [showCatalog, setShowCatalog] = useState(false);
   const [docChecks, setDocChecks] = useState({});
@@ -2153,11 +2158,38 @@ export default function App() {
 
   const calc = useMemo(() => computeImportCost({
     destCountry, price, transport, insurance, engine, ageYears, isNew, fuel, hasEur1,
-    vatRefundRate: ORIGIN[origin]?.vatRefund || 0, catalogValue,
-  }), [price, transport, insurance, engine, ageYears, isNew, fuel, hasEur1, catalogValue, origin, destCountry]);
+    vatRefundRate: ORIGIN[origin]?.vatRefund || 0, catalogValue, isReturner,
+  }), [price, transport, insurance, engine, ageYears, isNew, fuel, hasEur1, catalogValue, origin, destCountry, isReturner]);
 
   const animatedTotal = useCountUp(calc.arrival);
   const catalogHigher = catalogValue && (catalogValue > price);
+
+  const saveCalc = () => {
+    const entry = {
+      id: Date.now(),
+      make, model, year, price, fuel, destCountry, engine, euro,
+      arrival: calc.arrival, customs: calc.customs, excise: calc.excise, vat: calc.vat,
+      isReturner, hasEur1,
+    };
+    setSavedCalcs(prev => {
+      const updated = [entry, ...prev].slice(0, 5);
+      try { localStorage.setItem("ura_saved_calcs", JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+    setShowSaved(true);
+  };
+  const deleteSavedCalc = (id) => {
+    setSavedCalcs(prev => {
+      const updated = prev.filter(c => c.id !== id);
+      try { localStorage.setItem("ura_saved_calcs", JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+  };
+  const loadSavedCalc = (c) => {
+    setMake(c.make); setModel(c.model); setYear(c.year); setPrice(c.price);
+    setFuel(c.fuel); setDestCountry(c.destCountry); setEngine(c.engine); setEuro(c.euro);
+    setIsReturner(c.isReturner || false); setHasEur1(c.hasEur1 || false);
+  };
   const catalogDiff = catalogHigher ? fmt(catalogValue) : null;
 
   const downloadSummary = () => {
@@ -2352,6 +2384,24 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
         <span style={{ fontSize: 12, color: C.amber, fontWeight: 700, lineHeight: 1.45 }}>{t.catUnverified}</span>
       </div>
     )}
+    {isReturner && destCountry === "XK" && (
+      <div style={{ marginBottom: 14, background: "rgba(34,197,94,0.08)", border: "1.5px solid rgba(34,197,94,0.3)", borderRadius: 14, padding: "12px 15px" }}>
+        <div style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
+          <span style={{ fontSize: 18, flexShrink: 0 }}>🏠</span>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#22c55e", marginBottom: 4 }}>
+              {lang==="de"?"Rückkehrer-Zollbefreiung aktiv":lang==="sq"?"Lirim doganor për kthyes aktiv":lang==="sr"?"Oslobođenje od carine za povratnike aktivno":"Returnee customs exemption active"}
+            </div>
+            <div style={{ fontSize: 11.5, color: "#22c55e", fontWeight: 600, lineHeight: 1.55, opacity: 0.85 }}>
+              {lang==="de"?"Art. 39 ZGB-Kosovo: Personen die min. 2 Jahre im Ausland lebten dürfen 1 Fahrzeug zollfrei einführen. Bedingungen: mind. 2 Jahre Auslandsaufenthalt, kein Wiederverkauf für 2 Jahre, nur 1 Fahrzeug/Person, Nachweis bei der Dogana e Kosovës erforderlich."
+              :lang==="sq"?"Neni 39 KDK: Personat që kanë jetuar min. 2 vjet jashtë vendit mund të importojnë 1 automjet pa doganë. Kushte: min. 2 vjet jashtë, pa rishitje për 2 vjet, vetëm 1 automjet/person, dëshmi e nevojshme te Dogana e Kosovës."
+              :lang==="sr"?"Čl. 39 ZCK: Lica koja su živela min. 2 godine u inostranstvu mogu uvesti 1 vozilo bez carine. Uslovi: min. 2 god. u inostranstvu, bez preprodaje 2 god., samo 1 vozilo/osobi, dokaz potreban pri Carini Kosova."
+              :"Art. 39 Kosovo Customs Law: Persons who lived abroad for min. 2 years may import 1 vehicle duty-free. Conditions: min. 2 years abroad, no resale for 2 years, 1 vehicle per person, proof required at Dogana e Kosovës."}
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
     {origin === "KR" && !isNew && destCountry === "XK" && (
       <div style={{ marginBottom: 14, background: "rgba(59,130,246,0.08)", border: "1.5px solid rgba(59,130,246,0.25)", borderRadius: 14, padding: "11px 15px", display: "flex", gap: 9, alignItems: "flex-start" }}>
         <Info size={15} color="#3b82f6" style={{ flexShrink: 0, marginTop: 1 }} />
@@ -2458,11 +2508,68 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
       <div style={{ fontFamily: "'Fraunces',serif", fontWeight: 600, fontSize: 20, color: C.blue, fontVariantNumeric: "tabular-nums" }}>€ {fmt(calc.toState)}</div>
     </div>
     <SavingsTips t={t} calc={calc} hasEur1={hasEur1} ageYears={ageYears} engine={engine} fuel={fuel} C={C} />
+    {fuel === "ev" && destCountry === "XK" && (
+      <div style={{ background: "rgba(34,197,94,0.07)", border: "1px solid rgba(34,197,94,0.3)", borderRadius: 16, padding: "14px 16px", marginBottom: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+          <span style={{ fontSize: 24 }}>⚡</span>
+          <div style={{ fontSize: 13.5, fontWeight: 800, color: "#22c55e" }}>
+            {lang==="de"?"Elektrofahrzeug — Steuervorteile":lang==="sq"?"Automjet elektrik — Avantazhe tatimore":lang==="sr"?"Električno vozilo — Poreske prednosti":"Electric vehicle — Tax benefits"}
+          </div>
+        </div>
+        {(() => {
+          const dieselExcise = computeExcise({ cc: engine || 1968, ageYears, isNewUnregistered: isNew, fuel: "diesel" });
+          const saved = dieselExcise;
+          return (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(34,197,94,0.1)", borderRadius: 10, padding: "8px 12px" }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#22c55e" }}>
+                  {lang==="de"?"✅ Akzise-Befreiung (0%)":lang==="sq"?"✅ Liri nga akciza (0%)":lang==="sr"?"✅ Oslobođenje od akcize (0%)":"✅ Excise exemption (0%)"}
+                </span>
+                <span style={{ fontSize: 14, fontWeight: 800, color: "#22c55e" }}>€ 0</span>
+              </div>
+              {saved > 0 && (
+                <div style={{ fontSize: 12, color: "#22c55e", fontWeight: 700, padding: "0 4px" }}>
+                  💡 {lang==="de"?`Ersparnis vs. Diesel (${engine||1968}cc, ${ageYears}J.): ca. € ${fmt(Math.round(saved))}`:lang==="sq"?`Kursim vs. naftë (${engine||1968}cc, ${ageYears}v.): ~€ ${fmt(Math.round(saved))}`:lang==="sr"?`Ušteda vs. dizel (${engine||1968}cc, ${ageYears}g.): ~€ ${fmt(Math.round(saved))}`:`Savings vs. diesel (${engine||1968}cc, ${ageYears}yr): ~€ ${fmt(Math.round(saved))}`}
+                </div>
+              )}
+              <div style={{ fontSize: 11.5, color: "#16a34a", fontWeight: 600, lineHeight: 1.5, borderTop: "1px solid rgba(34,197,94,0.2)", paddingTop: 8, marginTop: 2 }}>
+                {lang==="de"?"⚠️ Elektrofahrzeuge müssen TÜV-geprüft sein und das Ladekabel mitgeliefert werden. Batterie-Gesundheit (State of Health) prüfen lassen vor dem Kauf."
+                :lang==="sq"?"⚠️ Automjetet elektrike duhet të kenë kontroll teknik (TÜV) dhe kabllon e karikimit. Kontrolloni gjendjen e baterisë (State of Health) para blerjes."
+                :lang==="sr"?"⚠️ Električna vozila moraju imati tehnički pregled (TÜV) i kabl za punjenje. Proverite zdravlje baterije (State of Health) pre kupovine."
+                :"⚠️ Electric vehicles must have a technical inspection (TÜV) and charging cable. Check battery health (State of Health) before purchase."}
+              </div>
+            </div>
+          );
+        })()}
+      </div>
+    )}
     <MarketCheckLinks t={t} make={make} model={model} year={year} C={C} />
     <SharePanel t={t} make={make} model={model} year={year} arrival={calc.arrival} price={price} lang={lang} />
+    {savedCalcs.length > 0 && (
+      <div style={{ marginBottom: 14 }}>
+        <button onClick={() => setShowSaved(s => !s)} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", background: C.glass, border: `1px solid ${C.line}`, borderRadius: 14, padding: "11px 15px", cursor: "pointer", fontFamily: "inherit", fontSize: 13, fontWeight: 700, color: C.ink }}>
+          💾 {lang==="de"?`Gespeicherte Berechnungen (${savedCalcs.length})`:lang==="sq"?`Llogaritjet e ruajtura (${savedCalcs.length})`:lang==="sr"?`Sačuvane kalkulacije (${savedCalcs.length})`:`Saved calculations (${savedCalcs.length})`}
+          <ChevronDown size={15} style={{ marginLeft: "auto", transform: showSaved ? "rotate(180deg)" : "none", transition: "transform .2s", color: C.muted }} />
+        </button>
+        {showSaved && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
+            {savedCalcs.map(c => (
+              <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 8, background: C.glass, border: `1px solid ${C.line}`, borderRadius: 12, padding: "10px 12px" }}>
+                <button onClick={() => loadSavedCalc(c)} style={{ flex: 1, background: "none", border: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit", padding: 0 }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: C.ink }}>{c.make} {c.model} · {c.year}</div>
+                  <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>€ {fmt(Math.round(c.arrival))} {c.isReturner ? "🏠" : ""}{c.hasEur1 ? " EUR.1" : ""} · {c.fuel.toUpperCase()}</div>
+                </button>
+                <button onClick={() => deleteSavedCalc(c.id)} style={{ background: "none", border: "none", cursor: "pointer", color: C.muted, fontSize: 16, padding: "0 4px", lineHeight: 1 }}>×</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )}
     <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
       <button onClick={() => window.print()} style={{ flex: 1, background: C.glass, border: `1.5px solid ${C.line}`, borderRadius: 13, padding: "13px", fontFamily: "inherit", fontWeight: 700, fontSize: 13.5, color: C.ink, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>🖨️ PDF</button>
       <button onClick={downloadSummary} style={{ flex: 1, background: C.glass, border: `1.5px solid ${C.line}`, borderRadius: 13, padding: "13px", fontFamily: "inherit", fontWeight: 700, fontSize: 13.5, color: C.ink, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}><Download size={16} color={C.blue} /> {t.download}</button>
+      <button onClick={saveCalc} title={lang==="de"?"Berechnung speichern":lang==="sq"?"Ruaj llogaritjen":lang==="sr"?"Sačuvaj kalkulaciju":"Save calculation"} style={{ background: C.glass, border: `1.5px solid ${C.line}`, borderRadius: 13, padding: "13px 16px", fontFamily: "inherit", fontWeight: 700, fontSize: 15, color: C.blue, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>💾</button>
       <button onClick={resetAll} style={{ background: C.glass, border: `1.5px solid ${C.line}`, borderRadius: 13, padding: "13px 16px", fontFamily: "inherit", fontWeight: 700, fontSize: 13.5, color: C.muted, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, whiteSpace: "nowrap" }}><RotateCcw size={16} color={C.muted} /> {t.reset}</button>
     </div>
     <div style={{ display: "flex", alignItems: "center", gap: 9, background: C.glass, border: `1px solid ${C.line}`, borderRadius: 14, padding: "12px 15px", marginBottom: 12 }}>
@@ -2702,6 +2809,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                 <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 8 }}>
                   {origin !== "KR" && destCountry !== "AL" && <Toggle on={hasEur1} set={setHasEur1} label={t.fEur1} />}
                   <Toggle on={isNew} set={setIsNew} label={t.fNew} />
+                  {destCountry === "XK" && <Toggle on={isReturner} set={(v) => { setIsReturner(v); if (v) setHasEur1(false); }} label={lang==="de"?"🏠 Rückkehrer (Zollbefreiung)":lang==="sq"?"🏠 Kthyes (Liri doganore)":lang==="sr"?"🏠 Povratnik (Oslobođenje carine)":"🏠 Returnee (Customs exemption)"} />}
                 </div>
                 {origin === "KR" && (
                   <div style={{ marginTop: 8, fontSize: 11.5, color: "#f59e0b", fontWeight: 600, background: "#f59e0b12", borderRadius: 10, padding: "7px 11px" }}>
