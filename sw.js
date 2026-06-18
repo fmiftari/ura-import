@@ -1,7 +1,7 @@
-const CACHE = "ura-v1";
+const CACHE = "ura-v3";
 const ASSETS = [
   "/ura-import/",
-  "/ura-import/assets/index-BcSfdCGd.js",
+  "/ura-import/assets/index-Z8cF6iqz.js",
   "/ura-import/manifest.json"
 ];
 
