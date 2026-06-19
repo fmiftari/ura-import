@@ -1,8 +1,11 @@
-const CACHE = "ura-v1";
+// CACHE-Version manuell erhöhen (ura-vN), wenn sich Inhalte grundlegend ändern und alte Caches
+// invalidiert werden sollen. Der JS-Bundle-Hash wird NICHT mehr hier hartkodiert, da der CI-Build
+// (.github/workflows/deploy.yml) bei jedem Push einen neuen Hash erzeugt — Precaching übernimmt
+// stattdessen der Fetch-Handler unten zur Laufzeit (Cache-as-you-go).
+const CACHE = "ura-v8";
 const ASSETS = [
   "/ura-import/",
-  "/ura-import/assets/index-BcSfdCGd.js",
-  "/ura-import/manifest.json"
+  "/ura-import/manifest.json",
 ];
 
 self.addEventListener("install", e => {

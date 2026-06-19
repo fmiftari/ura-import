@@ -293,6 +293,15 @@ const DEMO_VEHICLES = {
   "REXTON":       { make: "SsangYong",  model: "Rexton 2.2 XDi",       category: "car", cc: 2157, fuel: "diesel",  euro: 6, year: 2020 },
   "KORANDO":      { make: "SsangYong",  model: "Korando 1.5 T-GDI",    category: "car", cc: 1497, fuel: "petrol",  euro: 6, year: 2021 },
   "GV70":         { make: "Genesis",    model: "GV70 2.5 T-GDI",       category: "car", cc: 2497, fuel: "petrol",  euro: 6, year: 2022 },
+  // Furgon / Kamion / Motoçikletë (kategori shpesh të neglizhuara — shih Neni 44, vetëm "vetura" kanë kufi moshe)
+  "SPRINTER519":  { make: "Mercedes-Benz", model: "Sprinter 519 CDI",  category: "van",   cc: 2987,  fuel: "diesel", euro: 6, year: 2021 },
+  "CRAFTER":      { make: "Volkswagen",  model: "Crafter 2.0 TDI",     category: "van",   cc: 1968,  fuel: "diesel", euro: 6, year: 2020 },
+  "DAFXF":        { make: "DAF",         model: "XF 480 FT",           category: "truck", cc: 12900, fuel: "diesel", euro: 6, year: 2019 },
+  "ACTROS":       { make: "Mercedes-Benz", model: "Actros 1845",       category: "truck", cc: 12800, fuel: "diesel", euro: 6, year: 2018 },
+  "SCANIAR450":   { make: "Scania",      model: "R450",                category: "truck", cc: 12700, fuel: "diesel", euro: 6, year: 2019 },
+  "PCX125":       { make: "Honda",       model: "PCX125",              category: "moto",  cc: 125,   fuel: "petrol", euro: 5, year: 2017 },
+  "GSXR750":      { make: "Suzuki",      model: "GSX-R750",            category: "moto",  cc: 750,   fuel: "petrol", euro: 5, year: 2016 },
+  "NMAX155":      { make: "Yamaha",      model: "NMAX 155",            category: "moto",  cc: 155,   fuel: "petrol", euro: 5, year: 2020 },
 };
 
 const POPULAR_MODELS = [
@@ -609,6 +618,12 @@ const T = {
 
 const fmt = (n) => new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(Math.round(n || 0));
 const transportByOrigin = { DE: 650, CH: 720, AT: 600, NL: 780, BE: 760, FR: 800, IT: 750, SE: 900, ES: 850, PL: 700, LU: 760, KR: 1400 };
+
+// Analytics — sendet Events an GA4, falls gtag verfügbar ist (siehe index.html).
+// PLATZHALTER: sobald eine echte GA4-Property-ID existiert (statt G-XXXXXXXXXX), funktioniert dieser Hook automatisch.
+function trackEvent(name, params = {}) {
+  try { if (typeof window !== "undefined" && typeof window.gtag === "function") window.gtag("event", name, params); } catch {}
+}
 const NOW_YEAR = new Date().getFullYear();
 
 function ccBand(cc) { return cc <= 2000 ? "le2000" : cc <= 3000 ? "le3000" : "gt3000"; }
@@ -1194,6 +1209,7 @@ function InfoPage({ t, lang, C }) {
         { q: "Was ist die Akzise (Akcizë) und wie wird sie berechnet?", a: "Die Akzise ist eine zusätzliche Steuer, die von Motorgröße (Hubraum), Fahrzeugalter und Kraftstoffart abhängt. Ältere und größere Motoren zahlen mehr. Elektroautos sind von der Akzise befreit." },
         { q: "Wie hoch ist die Mehrwertsteuer (TVSH/MwSt) beim Autoimport?", a: "Die Mehrwertsteuer beträgt 18% und wird auf die Summe aus Zollwert, Zoll und Akzise berechnet." },
         { q: "Darf ich ein Auto importieren, das älter als 10 Jahre ist?", a: "Nein — für PKW. Art. 44 des Gesetzes 05/L-132 nennt wörtlich nur „vetura\" (Personenwagen): Diese dürfen über 10 Jahre alt nicht verzollt bzw. registriert werden, zusätzlich gilt mindestens Euro 4. Für Lieferwagen, LKW, Arbeitsfahrzeuge und Motorräder sieht das Gesetz keine eigene Altersgrenze vor — den Einzelfall vor dem Import beim Zoll bestätigen." },
+        { q: "Gilt die 10-Jahres-Grenze auch für Lieferwagen, LKW oder Motorräder?", a: "Nein. Das Gesetz 05/L-132 spricht in Art. 44 wörtlich nur von „vetura\" (Personenwagen). Für Lieferwagen, LKW, Arbeitsfahrzeuge und Motorräder gibt es keine eigene gesetzliche Altersgrenze — die Einfuhr ist grundsätzlich auch bei älteren Fahrzeugen dieser Kategorien möglich. Da die Praxis beim Zoll im Einzelfall abweichen kann, empfehlen wir eine vorherige Bestätigung bei der Dogana e Kosovës." },
         { q: "Was bringt mir eine EUR.1-Bescheinigung?", a: "Mit einer EUR.1-Bescheinigung (Ursprungsnachweis EU) entfällt der 10%ige Zoll komplett — das spart bei einem Auto im Wert von €10.000 etwa €1.000." },
         { q: "Ist URA wirklich kostenlos und wie genau sind die Ergebnisse?", a: "Ja, URA ist komplett kostenlos, ohne Registrierung und ohne Werbung. Alle Beträge sind Schätzungen zur Orientierung — die verbindliche Berechnung erfolgt durch die Dogana e Kosovës bei der Einfuhr." },
       ],
@@ -1215,6 +1231,7 @@ function InfoPage({ t, lang, C }) {
         { q: "Çka është akciza dhe si llogaritet?", a: "Akciza është taksë shtesë që varet nga madhësia e motorit, mosha e veturës dhe lloji i karburantit. Motorët më të mëdhenj dhe veturat më të vjetra paguajnë më shumë. Veturat elektrike janë të liruara nga akciza." },
         { q: "Sa është TVSH-ja për import të veturës?", a: "TVSH-ja është 18% dhe llogaritet mbi shumën e vlerës doganore, doganës dhe akcizës." },
         { q: "A mund të importoj veturë më të vjetër se 10 vjet?", a: "Jo, për vetura (PKW). Neni 44 i Ligjit 05/L-132 flet shprehimisht vetëm për \"vetura\": ato mbi 10 vjet nuk zhdoganohen ose regjistrohen, kërkohet edhe minimumi Euro 4. Për furgon, kamion, automjete pune dhe motoçikleta ligji nuk parashikon kufi moshe të veçantë — konfirmohet rasti specifik me Doganën para importit." },
+        { q: "A vlen kufiri 10-vjeçar edhe për furgon, kamion ose motoçikletë?", a: "Jo. Ligji 05/L-132, neni 44, flet shprehimisht vetëm për \"vetura\" (PKW). Furgon, kamion, automjete pune dhe motoçikleta nuk kanë kufi moshe të përcaktuar me ligj — importi në parim është i mundur edhe për mjete më të vjetra në këto kategori. Pasi praktika në terren mund të ndryshojë rast pas rasti, rekomandojmë konfirmim paraprak me Doganën e Kosovës." },
         { q: "Çka më sjell certifikata EUR.1?", a: "Me certifikatën EUR.1 (dëshmi origjine nga BE) dogana 10% bie në 0% — kjo kursen rreth €1.000 për një veturë me vlerë €10.000." },
         { q: "A është URA falas dhe sa të sakta janë rezultatet?", a: "Po, URA është plotësisht falas, pa regjistrim dhe pa reklama. Të gjitha shumat janë vlerësime orientuese — llogaritja e detyrueshme bëhet nga Dogana e Kosovës në momentin e importit." },
       ],
@@ -1236,6 +1253,7 @@ function InfoPage({ t, lang, C }) {
         { q: "What is the excise tax (akcizë) and how is it calculated?", a: "The excise tax depends on engine size, vehicle age and fuel type. Bigger and older engines pay more. Electric vehicles are exempt from excise tax." },
         { q: "How much VAT applies when importing a car?", a: "VAT is 18% and is calculated on the sum of customs value, customs duty and excise tax." },
         { q: "Can I import a car older than 10 years?", a: "No — for passenger cars. Article 44 of Law 05/L-132 literally names only \"vetura\" (cars): cars older than 10 years cannot be customs-cleared or registered, and Euro 4 is the minimum standard. For vans, trucks, work vehicles and motorcycles the law sets no separate age limit — confirm your specific case with Kosovo Customs before importing." },
+        { q: "Does the 10-year limit also apply to vans, trucks or motorcycles?", a: "No. Law 05/L-132, Article 44, literally names only \"vetura\" (passenger cars). Vans, trucks, work vehicles and motorcycles have no statutory age limit — importing older vehicles in these categories is, in principle, possible. Since real-world customs practice can vary case by case, we recommend confirming in advance with Kosovo Customs." },
         { q: "What does an EUR.1 certificate get me?", a: "With an EUR.1 certificate (proof of EU origin), the 10% customs duty is eliminated entirely — saving about €1,000 on a €10,000 car." },
         { q: "Is URA really free, and how accurate are the results?", a: "Yes, URA is completely free, with no registration and no ads. All amounts are estimates for guidance — the binding calculation is made by Dogana e Kosovës (Kosovo Customs) at the time of import." },
       ],
@@ -1257,6 +1275,7 @@ function InfoPage({ t, lang, C }) {
         { q: "Šta je akciza i kako se računa?", a: "Akciza zavisi od veličine motora, starosti vozila i vrste goriva. Veći i stariji motori plaćaju više. Električna vozila su izuzeta od akcize." },
         { q: "Koliko iznosi PDV pri uvozu automobila?", a: "PDV iznosi 18% i računa se na zbir carinske vrednosti, carine i akcize." },
         { q: "Mogu li uvesti automobil stariji od 10 godina?", a: "Ne, za putnička vozila (PKW). Član 44. Zakona 05/L-132 pominje izričito samo \"vetura\": ona starija od 10 godina ne mogu se carinski oformiti ni registrovati, potreban je i minimum Euro 4. Za kombi, kamion, radna vozila i motocikle zakon ne predviđa posebnu starosnu granicu — potvrdite svoj slučaj sa Carinom pre uvoza." },
+        { q: "Da li se granica od 10 godina odnosi i na kombi, kamion ili motocikl?", a: "Ne. Zakon 05/L-132, član 44, izričito pominje samo \"vetura\" (putnička vozila). Kombi, kamion, radna vozila i motocikli nemaju zakonsku starosnu granicu — uvoz starijih vozila ovih kategorija je u principu moguć. Pošto praksa Carine može varirati od slučaja do slučaja, preporučujemo prethodnu potvrdu sa Carinom Kosova." },
         { q: "Šta mi donosi EUR.1 sertifikat?", a: "Sa EUR.1 sertifikatom (dokaz porekla iz EU) carina od 10% se potpuno ukida — to štedi oko €1.000 za automobil vredan €10.000." },
         { q: "Da li je URA stvarno besplatna i koliko su rezultati precizni?", a: "Da, URA je potpuno besplatna, bez registracije i bez reklama. Svi iznosi su procene za orijentaciju — obavezujući obračun vrši Dogana e Kosovës prilikom uvoza." },
       ],
@@ -1405,13 +1424,16 @@ function SavingsTips({ t, calc, hasEur1, ageYears, engine, fuel, C }) {
 }
 
 // ─── MARKTPREIS-CHECK ───────────────────────────────────────────────────────
+// PLATZHALTER — Flamur: echte Affiliate-/Partnerprogramm-IDs hier eintragen, sobald vorhanden.
+const AFFILIATE_REFS = { autoscout24: "ura-import", mobilede: "ura-import" };
+
 function MarketCheckLinks({ t, make, model, year, C }) {
   const query = [make, model, year].filter(Boolean).join(" ").trim();
   if (!query) return null;
   const enc = encodeURIComponent(query);
   const links = [
-    { label: "AutoScout24", url: `https://www.google.com/search?q=${enc}+site%3Aautoscout24.de` },
-    { label: "mobile.de", url: `https://www.google.com/search?q=${enc}+site%3Amobile.de` },
+    { label: "AutoScout24", url: `https://www.google.com/search?q=${enc}+site%3Aautoscout24.de&utm_source=ura-import&utm_campaign=${AFFILIATE_REFS.autoscout24}` },
+    { label: "mobile.de", url: `https://www.google.com/search?q=${enc}+site%3Amobile.de&utm_source=ura-import&utm_campaign=${AFFILIATE_REFS.mobilede}` },
   ];
   return (
     <div className="card" style={{ padding: "14px 16px", marginBottom: 14 }}>
@@ -2144,6 +2166,21 @@ export default function App() {
     } catch {}
   }, []);
 
+  // In-App-Banner bei Gesetzesänderungen — Ersatz für echte Push-Notifications (kein Backend nötig).
+  // Vergleicht TAX_CONFIG.stand mit dem zuletzt gesehenen Stand im Browser; zeigt Banner nur bei Änderung.
+  const [showLawBanner, setShowLawBanner] = useState(false);
+  useEffect(() => {
+    try {
+      const seen = localStorage.getItem("ura_law_stand");
+      if (seen && seen !== TAX_CONFIG.stand) setShowLawBanner(true);
+      else if (!seen) localStorage.setItem("ura_law_stand", TAX_CONFIG.stand);
+    } catch {}
+  }, []);
+  const dismissLawBanner = () => {
+    setShowLawBanner(false);
+    try { localStorage.setItem("ura_law_stand", TAX_CONFIG.stand); } catch {}
+  };
+
   // PWA: Service Worker registrieren
   useEffect(() => {
     if ("serviceWorker" in navigator) {
@@ -2766,7 +2803,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
       </div>
     )}
     <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-      <button onClick={() => { document.title = `URA — ${make||"Auto"} ${model} ${year}`; window.print(); }} style={{ flex: "1 1 120px", background: "linear-gradient(135deg,#e6c878,#c9a65a)", color: "#0a0e17", border: "none", borderRadius: 13, padding: "13px", fontFamily: "inherit", fontWeight: 800, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 7, boxShadow: "0 4px 14px -4px rgba(201,166,90,.45)" }}>
+      <button onClick={() => { trackEvent("export_pdf", { make, model, year }); document.title = `URA — ${make||"Auto"} ${model} ${year}`; window.print(); }} style={{ flex: "1 1 120px", background: "linear-gradient(135deg,#e6c878,#c9a65a)", color: "#0a0e17", border: "none", borderRadius: 13, padding: "13px", fontFamily: "inherit", fontWeight: 800, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 7, boxShadow: "0 4px 14px -4px rgba(201,166,90,.45)" }}>
         <FileText size={15} /> {lang==="de"?"Als PDF speichern":lang==="sq"?"Ruaj si PDF":lang==="sr"?"Sačuvaj kao PDF":"Save as PDF"}
       </button>
       <button onClick={downloadSummary} style={{ flex: "1 1 100px", background: C.glass, border: `1.5px solid ${C.line}`, borderRadius: 13, padding: "13px", fontFamily: "inherit", fontWeight: 700, fontSize: 13, color: C.ink, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
@@ -2823,6 +2860,16 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
           </div>
           <button onClick={handleInstall} style={{ background: C.blue, color: C.navy, border: "none", borderRadius: 10, padding: "9px 14px", fontFamily: "inherit", fontWeight: 800, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>{lang==="de"?"Installieren":lang==="sq"?"Instalo":"Install"}</button>
           <button onClick={() => setShowInstall(false)} style={{ background: "transparent", border: "none", color: C.muted, cursor: "pointer", fontSize: 18, padding: "4px 6px", lineHeight: 1 }}>✕</button>
+        </div>
+      )}
+      {showLawBanner && (
+        <div style={{ position: "fixed", top: 12, left: 12, right: 12, zIndex: 999, background: "linear-gradient(135deg,#2a2210,#1f1a0c)", border: `1.5px solid ${C.amber}`, borderRadius: 18, padding: "14px 18px", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 8px 32px rgba(0,0,0,.6)" }}>
+          <div style={{ fontSize: 22, flexShrink: 0 }}>⚖️</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: C.ink }}>{lang==="de"?"Rechtliche Angaben aktualisiert":lang==="sq"?"Të dhënat ligjore u përditësuan":lang==="sr"?"Pravni podaci ažurirani":"Legal information updated"}</div>
+            <div style={{ fontSize: 11, color: C.muted }}>{lang==="de"?`Stand: ${TAX_CONFIG.stand} — bitte prüfe deine letzte Berechnung erneut.`:lang==="sq"?`Përditësuar: ${TAX_CONFIG.stand} — kontrollo përsëri llogaritjen tënde të fundit.`:lang==="sr"?`Ažurirano: ${TAX_CONFIG.stand} — provjerite ponovo svoju posljednju kalkulaciju.`:`Updated: ${TAX_CONFIG.stand} — please re-check your last calculation.`}</div>
+          </div>
+          <button onClick={dismissLawBanner} style={{ background: "transparent", border: "none", color: C.muted, cursor: "pointer", fontSize: 18, padding: "4px 6px", lineHeight: 1, flexShrink: 0 }}>✕</button>
         </div>
       )}
       <div style={{ position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: "70vw", height: "45vh", maxWidth: 800, background: "radial-gradient(ellipse,rgba(201,166,90,.13) 0%,transparent 70%)", pointerEvents: "none", animation: "uraGlowPulse 8s ease-in-out infinite", zIndex: 0 }} />
@@ -3036,7 +3083,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
               <div className="card ura-rise" style={{ padding: 18, marginBottom: 16, animationDelay: ".18s" }}>
                 {/* ── Basis-Felder (immer sichtbar) ── */}
                 <div className="form-grid">
-                  <div><label style={lbl}>{t.destCountry}</label><Select label={t.destCountry} value={destCountry} onChange={(e) => setDestCountry(e.target.value)}><option value="XK">{t.destXK}</option><option value="AL">{t.destAL}</option><option value="MK">{t.destMK}</option></Select></div>
+                  <div><label style={lbl}>{t.destCountry}</label><Select label={t.destCountry} value={destCountry} onChange={(e) => { setDestCountry(e.target.value); trackEvent("select_destination", { destination: e.target.value }); }}><option value="XK">{t.destXK}</option><option value="AL">{t.destAL}</option><option value="MK">{t.destMK}</option></Select></div>
                   <div><label style={lbl}>{t.price}</label><input style={errors.price ? inputErr : inputBox} type="number" value={price} onChange={(e) => { const v = +e.target.value; setPrice(v); validate("price", v); }} />{errors.price && <div style={{ fontSize: 11, color: C.red, marginTop: 4 }}>{errors.price}</div>}</div>
                   <div><label style={lbl}>{t.year}</label><input style={errors.year ? inputErr : inputBox} type="number" value={year} onChange={(e) => { const v = +e.target.value; setYear(v); validate("year", v); }} />{errors.year && <div style={{ fontSize: 11, color: C.red, marginTop: 4 }}>{errors.year}</div>}</div>
                   <div><label style={lbl}>{t.engine}</label><input style={errors.engine ? inputErr : inputBox} type="number" value={engine} onChange={(e) => { const v = +e.target.value; setEngine(v); validate("engine", v); }} />{errors.engine && <div style={{ fontSize: 11, color: C.red, marginTop: 4 }}>{errors.engine}</div>}</div>
@@ -3065,7 +3112,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                     <div className="form-grid">
                       <div><label style={lbl}>{t.make}</label><input style={inputBox} value={make} onChange={(e) => setMake(e.target.value)} /></div>
                       <div><label style={lbl}>{t.model}</label><input style={inputBox} value={model} onChange={(e) => setModel(e.target.value)} /></div>
-                      <div><label style={lbl}>{t.category}</label><Select label={t.category} value={category} onChange={(e) => setCategory(e.target.value)}><option value="car">{t.catCar}</option><option value="van">{t.catVan}</option><option value="truck">{t.catTruck}</option><option value="moto">{t.catMoto}</option></Select></div>
+                      <div><label style={lbl}>{t.category}</label><Select label={t.category} value={category} onChange={(e) => { setCategory(e.target.value); trackEvent("select_category", { category: e.target.value }); }}><option value="car">{t.catCar}</option><option value="van">{t.catVan}</option><option value="truck">{t.catTruck}</option><option value="moto">{t.catMoto}</option></Select></div>
                       <div><label style={lbl}>{t.origin}</label><Select label={t.origin} value={origin} onChange={(e) => { setOrigin(e.target.value); if (e.target.value === "KR") setHasEur1(false); }}>{Object.keys(ORIGIN).map(k => <option key={k} value={k}>{originName(k, lang)}</option>)}</Select></div>
                       <div><label style={lbl}>{t.euro}</label><input style={inputBox} type="number" min={1} max={7} value={euro} onChange={(e) => setEuro(+e.target.value)} /></div>
                       <div><label style={lbl}>{t.insurance}</label><input style={inputBox} type="number" value={insurance} onChange={(e) => setInsurance(+e.target.value)} /></div>
@@ -3252,12 +3299,14 @@ function PartnerPage({ lang, C, make, model, year, price, engine, fuel, destCoun
       sSub:      "Zollabwicklung, HS-Code, EUR.1, Lagerlogistik",
       finance:   "💳 Finanzinstitute",
       fSub:      "KFZ-Kredite und Fahrzeugfinanzierung",
+      insurance: "🛡️ Versicherungen",
+      iSub:      "KFZ-Haftpflicht & Kasko für importierte Fahrzeuge",
       visit:     "Website",
       quote:     "Anfrage senden",
       become:    "Partner werden",
       becomeD:   "Ihr Unternehmen hier präsentieren",
       demo:      "DEMO",
-      note:      "* FM-International AG ist eine fiktive Demo-Firma. Alle anderen Unternehmen sind real.",
+      note:      "* FM-International AG ist eine fiktive Demo-Firma. Alle anderen Unternehmen sind real. Versicherungspartner sind noch Platzhalter — Slots frei.",
     },
     en: {
       headline:  "Partners & Service Providers",
@@ -3269,12 +3318,14 @@ function PartnerPage({ lang, C, make, model, year, price, engine, fuel, destCoun
       sSub:      "Customs clearance, HS code, EUR.1, warehouse logistics",
       finance:   "💳 Financial Institutions",
       fSub:      "Car loans and vehicle financing",
+      insurance: "🛡️ Insurance Providers",
+      iSub:      "Car liability & comprehensive insurance for imported vehicles",
       visit:     "Website",
       quote:     "Send inquiry",
       become:    "Become a partner",
       becomeD:   "List your company here",
       demo:      "DEMO",
-      note:      "* FM-International AG is a fictional demo company. All other companies are real.",
+      note:      "* FM-International AG is a fictional demo company. All other companies are real. Insurance partners are still placeholders — slots open.",
     },
     sq: {
       headline:  "Partnerë & Ofrues Shërbimesh",
@@ -3286,12 +3337,14 @@ function PartnerPage({ lang, C, make, model, year, price, engine, fuel, destCoun
       sSub:      "Procedura doganore, kodi HS, EUR.1, logjistikë magazinuese",
       finance:   "💳 Institucione Financiare",
       fSub:      "Kredi dhe financim automjeti",
+      insurance: "🛡️ Sigurime",
+      iSub:      "Sigurim përgjegjësie & kasko për automjete të importuara",
       visit:     "Faqja",
       quote:     "Dërgo kërkesë",
       become:    "Bëhu partner",
       becomeD:   "Prezanto kompaninë tënde këtu",
       demo:      "DEMO",
-      note:      "* FM-International AG është kompani fiktive demo. Të gjitha kompanitë e tjera janë reale.",
+      note:      "* FM-International AG është kompani fiktive demo. Të gjitha kompanitë e tjera janë reale. Partnerët e sigurimit janë ende vende të lira (placeholder).",
     },
     sr: {
       headline:  "Partneri & Pružaoci Usluga",
@@ -3303,12 +3356,14 @@ function PartnerPage({ lang, C, make, model, year, price, engine, fuel, destCoun
       sSub:      "Carinjenje, HS kod, EUR.1, skladišna logistika",
       finance:   "💳 Finansijske Institucije",
       fSub:      "Auto krediti i finansiranje vozila",
+      insurance: "🛡️ Osiguranja",
+      iSub:      "Auto osiguranje i kasko za uvezena vozila",
       visit:     "Web stranica",
       quote:     "Pošalji upit",
       become:    "Postani partner",
       becomeD:   "Predstavite vašu kompaniju ovdje",
       demo:      "DEMO",
-      note:      "* FM-International AG je fiktivna demo kompanija. Sve ostale kompanije su realne.",
+      note:      "* FM-International AG je fiktivna demo kompanija. Sve ostale kompanije su realne. Partneri za osiguranje su jos placeholderi — slotovi slobodni.",
     },
   };
   const L = t[lang] || t.de;
@@ -3480,11 +3535,42 @@ function PartnerPage({ lang, C, make, model, year, price, engine, fuel, destCoun
     },
   ];
 
+  // PLATZHALTER — Flamur: hier echte Versicherungspartner eintragen (Name, HQ, E-Mail, URL, Tagline je Sprache).
+  const INSURANCE = [
+    {
+      name:"[Platzhalter] Versicherungspartner 1",
+      hq:"—",
+      email:"partner@ura-import.info",
+      url:"#",
+      tag:{
+        de:"Slot frei · KFZ-Haftpflicht & Kasko für importierte Fahrzeuge",
+        en:"Slot open · car liability & comprehensive insurance for imports",
+        sq:"Vend i lirë · sigurim përgjegjësie & kasko për automjete të importuara",
+        sr:"Slot slobodan · auto osiguranje i kasko za uvezena vozila",
+      },
+      accent:"#8a93a6", init:"?",
+    },
+    {
+      name:"[Platzhalter] Versicherungspartner 2",
+      hq:"—",
+      email:"partner@ura-import.info",
+      url:"#",
+      tag:{
+        de:"Slot frei · grenzüberschreitende Versicherung Schweiz/EU → Kosovo",
+        en:"Slot open · cross-border insurance Switzerland/EU → Kosovo",
+        sq:"Vend i lirë · sigurim ndërkufitar Zvicër/BE → Kosovë",
+        sr:"Slot slobodan · prekogranično osiguranje Švajcarska/EU → Kosovo",
+      },
+      accent:"#8a93a6", init:"?",
+    },
+  ];
+
   // ── Category icon helper ────────────────────────────────────────────────
   const CatIcon = ({ cat, accent, size=22 }) => {
     const s = { color: accent };
     if (cat === "transport") return <Truck size={size} style={s} />;
     if (cat === "sped")      return <ClipboardList size={size} style={s} />;
+    if (cat === "insurance") return <ShieldCheck size={size} style={s} />;
     return <Landmark size={size} style={s} />;
   };
 
@@ -3668,6 +3754,14 @@ function PartnerPage({ lang, C, make, model, year, price, engine, fuel, destCoun
       <div style={grid}>
         <FeaturedCard co={FINANCE[0]} cat="finance" />
         {FINANCE.slice(1).map((co,i) => <CompanyCard key={i} co={co} cat="finance" />)}
+        <BecomePartner />
+      </div>
+
+      {/* Insurance — Platzhalter-Slots, siehe INSURANCE-Array */}
+      <SectionHeader title={L.insurance} sub={L.iSub} cat="insurance" />
+      <div style={grid}>
+        <FeaturedCard co={INSURANCE[0]} cat="insurance" />
+        {INSURANCE.slice(1).map((co,i) => <CompanyCard key={i} co={co} cat="insurance" />)}
         <BecomePartner />
       </div>
 
