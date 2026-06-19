@@ -322,39 +322,39 @@ const C = {
 };
 
 const ORIGIN = {
-  DE: { flag:"🇩🇪", sq:"Gjermani", sr:"Nemačka", en:"Germany", de:"Deutschland", vatRefund:0.19 },
-  CH: { flag:"🇨🇭", sq:"Zvicër", sr:"Švajcarska", en:"Switzerland", de:"Schweiz", vatRefund:0.077 },
-  AT: { flag:"🇦🇹", sq:"Austri", sr:"Austrija", en:"Austria", de:"Österreich", vatRefund:0.20 },
-  NL: { flag:"🇳🇱", sq:"Holandë", sr:"Holandija", en:"Netherlands", de:"Niederlande", vatRefund:0.21 },
-  SE: { flag:"🇸🇪", sq:"Suedi", sr:"Švedska", en:"Sweden", de:"Schweden", vatRefund:0.25 },
-  ES: { flag:"🇪🇸", sq:"Spanjë", sr:"Španija", en:"Spain", de:"Spanien", vatRefund:0.21 },
-  PL: { flag:"🇵🇱", sq:"Poloni", sr:"Poljska", en:"Poland", de:"Polen", vatRefund:0.23 },
-  LU: { flag:"🇱🇺", sq:"Luksemburg", sr:"Luksemburg", en:"Luxembourg", de:"Luxemburg", vatRefund:0.17 },
-  BE: { flag:"🇧🇪", sq:"Belgjikë", sr:"Belgija", en:"Belgium", de:"Belgien", vatRefund:0.21 },
-  FR: { flag:"🇫🇷", sq:"Francë", sr:"Francuska", en:"France", de:"Frankreich", vatRefund:0.20 },
-  IT: { flag:"🇮🇹", sq:"Itali", sr:"Italija", en:"Italy", de:"Italien", vatRefund:0.22 },
-  KR: { flag:"🇰🇷", sq:"Koreja e Jugut", sr:"Južna Koreja", en:"South Korea", de:"Südkorea", vatRefund:0.10 },
+  DE: { flag:"🇩🇪", sq:"Gjermani", sr:"Nemačka", en:"Germany", de:"Deutschland", tr:"Almanya", vatRefund:0.19 },
+  CH: { flag:"🇨🇭", sq:"Zvicër", sr:"Švajcarska", en:"Switzerland", de:"Schweiz", tr:"İsviçre", vatRefund:0.077 },
+  AT: { flag:"🇦🇹", sq:"Austri", sr:"Austrija", en:"Austria", de:"Österreich", tr:"Avusturya", vatRefund:0.20 },
+  NL: { flag:"🇳🇱", sq:"Holandë", sr:"Holandija", en:"Netherlands", de:"Niederlande", tr:"Hollanda", vatRefund:0.21 },
+  SE: { flag:"🇸🇪", sq:"Suedi", sr:"Švedska", en:"Sweden", de:"Schweden", tr:"İsveç", vatRefund:0.25 },
+  ES: { flag:"🇪🇸", sq:"Spanjë", sr:"Španija", en:"Spain", de:"Spanien", tr:"İspanya", vatRefund:0.21 },
+  PL: { flag:"🇵🇱", sq:"Poloni", sr:"Poljska", en:"Poland", de:"Polen", tr:"Polonya", vatRefund:0.23 },
+  LU: { flag:"🇱🇺", sq:"Luksemburg", sr:"Luksemburg", en:"Luxembourg", de:"Luxemburg", tr:"Lüksemburg", vatRefund:0.17 },
+  BE: { flag:"🇧🇪", sq:"Belgjikë", sr:"Belgija", en:"Belgium", de:"Belgien", tr:"Belçika", vatRefund:0.21 },
+  FR: { flag:"🇫🇷", sq:"Francë", sr:"Francuska", en:"France", de:"Frankreich", tr:"Fransa", vatRefund:0.20 },
+  IT: { flag:"🇮🇹", sq:"Itali", sr:"Italija", en:"Italy", de:"Italien", tr:"İtalya", vatRefund:0.22 },
+  KR: { flag:"🇰🇷", sq:"Koreja e Jugut", sr:"Južna Koreja", en:"South Korea", de:"Südkorea", tr:"Güney Kore", vatRefund:0.10 },
 };
 const originName = (k, lang) => ORIGIN[k] ? `${ORIGIN[k].flag} ${ORIGIN[k][lang] || ORIGIN[k].en}` : k;
 const FUEL = {
-  petrol: { sq: "Benzinë", sr: "Benzin", en: "Petrol", de: "Benzin" },
-  diesel: { sq: "Naftë", sr: "Dizel", en: "Diesel", de: "Diesel" },
-  hybrid: { sq: "Hibrid", sr: "Hibrid", en: "Hybrid", de: "Hybrid" },
-  ev: { sq: "Elektrike", sr: "Električno", en: "Electric", de: "Elektrisch" },
+  petrol: { sq: "Benzinë", sr: "Benzin", en: "Petrol", de: "Benzin", tr: "Benzin" },
+  diesel: { sq: "Naftë", sr: "Dizel", en: "Diesel", de: "Diesel", tr: "Dizel" },
+  hybrid: { sq: "Hibrid", sr: "Hibrid", en: "Hybrid", de: "Hybrid", tr: "Hibrit" },
+  ev: { sq: "Elektrike", sr: "Električno", en: "Electric", de: "Elektrisch", tr: "Elektrikli" },
 };
-const YEAR_WORD = { sq: "vjet", sr: "god.", en: "yrs", de: "Jahre" };
+const YEAR_WORD = { sq: "vjet", sr: "god.", en: "yrs", de: "Jahre", tr: "yıl" };
 
 const DOCS = [
-  { id: "invoice",  sq: "Faturë / kontratë blerjeje", sr: "Faktura / kupoprodajni ugovor", en: "Invoice / purchase contract", de: "Rechnung / Kaufvertrag" },
-  { id: "title",    sq: "Dokumentet e mjetit (leje qarkullimi)", sr: "Dokumenta vozila (saobraćajna)", en: "Vehicle title / registration docs", de: "Fahrzeugpapiere (Zulassung)" },
-  { id: "origin",   sq: "Dëshmi e origjinës dhe pronësisë", sr: "Dokaz o poreklu i vlasništvu", en: "Proof of origin & ownership", de: "Herkunfts- & Eigentumsnachweis" },
-  { id: "exa",      sq: "EX-A — Deklarata e eksportit (BE)", sr: "EX-A — EU izvozna deklaracija", en: "EX-A — EU export declaration", de: "EX-A — EU-Ausfuhranmeldung" },
-  { id: "eur1",     sq: "EUR.1 (opsionale — doganë 0%)", sr: "EUR.1 (opciono — carina 0%)", en: "EUR.1 (optional — 0% duty)", de: "EUR.1 (optional — 0% Zoll)" },
-  { id: "coc",      sq: "COC — vetëm për vetura të reja", sr: "COC — samo za nova vozila", en: "COC — new vehicles only", de: "COC — nur für Neufahrzeuge" },
-  { id: "id",       sq: "Pasaportë / letërnjoftim", sr: "Pasoš / lična karta", en: "Passport / ID card", de: "Reisepass / Ausweis" },
-  { id: "customs",  sq: "Pagesa: doganë + akcizë + TVSH", sr: "Plaćanje: carina + akciza + PDV", en: "Payment: customs + excise + VAT", de: "Zahlung: Zoll + Akzise + MwSt" },
-  { id: "tech",     sq: "Kontroll teknik në Kosovë", sr: "Tehnički pregled na Kosovu", en: "Technical inspection in Kosovo", de: "Technische Prüfung im Kosovo" },
-  { id: "plates",   sq: "Regjistrim + targa RKS", sr: "Registracija + RKS tablice", en: "Registration + RKS plates", de: "Anmeldung + RKS-Kennzeichen" },
+  { id: "invoice",  sq: "Faturë / kontratë blerjeje", sr: "Faktura / kupoprodajni ugovor", en: "Invoice / purchase contract", de: "Rechnung / Kaufvertrag", tr: "Fatura / satış sözleşmesi" },
+  { id: "title",    sq: "Dokumentet e mjetit (leje qarkullimi)", sr: "Dokumenta vozila (saobraćajna)", en: "Vehicle title / registration docs", de: "Fahrzeugpapiere (Zulassung)", tr: "Araç ruhsatı / tescil belgeleri" },
+  { id: "origin",   sq: "Dëshmi e origjinës dhe pronësisë", sr: "Dokaz o poreklu i vlasništvu", en: "Proof of origin & ownership", de: "Herkunfts- & Eigentumsnachweis", tr: "Menşe ve mülkiyet belgesi" },
+  { id: "exa",      sq: "EX-A — Deklarata e eksportit (BE)", sr: "EX-A — EU izvozna deklaracija", en: "EX-A — EU export declaration", de: "EX-A — EU-Ausfuhranmeldung", tr: "EX-A — AB ihracat beyannamesi" },
+  { id: "eur1",     sq: "EUR.1 (opsionale — doganë 0%)", sr: "EUR.1 (opciono — carina 0%)", en: "EUR.1 (optional — 0% duty)", de: "EUR.1 (optional — 0% Zoll)", tr: "EUR.1 (opsiyonel — %0 gümrük)" },
+  { id: "coc",      sq: "COC — vetëm për vetura të reja", sr: "COC — samo za nova vozila", en: "COC — new vehicles only", de: "COC — nur für Neufahrzeuge", tr: "COC — sadece sıfır araçlar için" },
+  { id: "id",       sq: "Pasaportë / letërnjoftim", sr: "Pasoš / lična karta", en: "Passport / ID card", de: "Reisepass / Ausweis", tr: "Pasaport / kimlik kartı" },
+  { id: "customs",  sq: "Pagesa: doganë + akcizë + TVSH", sr: "Plaćanje: carina + akciza + PDV", en: "Payment: customs + excise + VAT", de: "Zahlung: Zoll + Akzise + MwSt", tr: "Ödeme: gümrük + ÖTV + KDV" },
+  { id: "tech",     sq: "Kontroll teknik në Kosovë", sr: "Tehnički pregled na Kosovu", en: "Technical inspection in Kosovo", de: "Technische Prüfung im Kosovo", tr: "Kosova'da teknik muayene" },
+  { id: "plates",   sq: "Regjistrim + targa RKS", sr: "Registracija + RKS tablice", en: "Registration + RKS plates", de: "Anmeldung + RKS-Kennzeichen", tr: "Tescil + RKS plakası" },
 ];
 
 const T = {
@@ -614,6 +614,70 @@ const T = {
     tipAge: (save, yr) => `Fahrzeug ab ${yr}+ suchen (≤8 Jahre) — spart €${save} Akzise`,
     tipEngine: (save) => `Motor ≤2.000cc spart €${save} Akzise ggü. aktuellem Hubraum`,
   },
+  tr: {
+    tagline: "Araç ithalat asistanı",
+    tabCalc: "Hesap Makinesi", tabDocs: "Belgeler",
+    h1a: "Kosova'ya kadar", h1b: "gerçekte", h1c: "ne kadara mal olur?",
+    sub: "Vergiler kanuna göre otomatik hesaplanır — elle değiştirilemez.",
+    identify: "Ruhsat tipi / HSN-TSN / Şasi No (VIN)", recognize: "Otomatik tanı",
+    recHint: "Aşağıya VIN (17 hane) veya demo kod girin", recOk: "Araç tanındı ✓",
+    recNo: "Bulunamadı — VIN veya demo kodları deneyin", recNet: "Önizlemede ağ engellendi — yayınlandığında çalışır", recLoad: "VIN okunuyor…",
+    popularModels: "Popüler modeller",
+    category: "Kategori", catCar: "Binek araç (PKW)", catVan: "Panelvan ≤3.5t", catTruck: "Kamyon >3.5t", catMoto: "Motosiklet",
+    make: "Marka", model: "Model", price: "Satın alma fiyatı (€)", transport: "Nakliye (€)", insurance: "Sigorta (€)",
+    cc: "Motor hacmi (cc)", year: "İlk tescil yılı", origin: "Menşei", fuel: "Yakıt", euro: "Emisyon sınıfı", hs: "Tarife kodu (TARIK)",
+    fNew: "Yeni, tescilsiz", fEur1: "AB menşe belgesi (EUR.1)",
+    notAllowed: "Aracın ithalatına izin verilmiyor",
+    ageBad: (a, m) => `Araç ${a} yaşında — ${m} yıllık sınırın üzerinde.`,
+    euroBad: (e, m) => `Euro ${e} minimumun altında (Euro ${m}).`,
+    ageSuggest: "2016 model yılı ve sonrası araç arayın → ",
+    meets: (a, e) => `Kriterleri karşılıyor · ${a} yıl · Euro ${e}`,
+    catUnverified: "05/L-132 sayılı Kanun'un 44. maddesi, 10 yıl ve Euro 4 sınırını yalnızca \"vetura\" (binek araç) için belirler. Panelvan, kamyon, iş aracı ve motosikletler için açık bir yaş sınırı yoktur — ithalattan önce kendi durumunuzu Gümrük ile teyit edin.",
+    catalogBase: "Gümrük matrahı", catalogBuy: "Sizin satın alma fiyatınız", catalogVal: "Gümrük katalog değeri (tahmini)",
+    catalogWarning: "⚠ Dikkat: Kosova Gümrüğü kendi katalog değerini esas alabilir. Gümrük ile teyit edin.",
+    catalogCost: "Katalog değeriyle maliyet:",
+    destCountry: "Hedef ülke", destXK: "🇽🇰 Kosova", destAL: "🇦🇱 Arnavutluk",
+    alInfo: "Arnavutluk: %0 gümrük, CIF değeri üzerinden (fiyat + nakliye + sigorta) %20 KDV. Maks. yaş: 10 yıl, minimum Euro 4.",
+    alLuxuryNote: "Lüks araç (≥3000cc veya ≥€48.000): + ilk tescil vergisi ~€700.",
+    destMK: "🇲🇰 Kuzey Makedonya",
+    mkInfo: "Kuzey Makedonya: %5 gümrük (EUR.1 ile %1), gümrük değeri + gümrük + DMV üzerinden %18 KDV. Buradaki DMV (motorlu taşıtlar vergisi) motor hacmine göre TAHMİNİ bir değerdir — tam tutarı customs.gov.mk'de doğrulayın.",
+    mkExcise: "DMV (taşıt vergisi)",
+    mkExciseNote: "Tahmini · customs.gov.mk'de doğrulayın",
+    mkExciseEvNote: "0€ · elektrikli araçlar (0g/km CO2) DMV'den muaftır",
+    currencyApprox: (amt) => `≈ ${amt}`,
+    marketCheckTitle: "Piyasa fiyatını karşılaştır",
+    marketCheckSub: "Satın almadan önce bu model için güncel ilanlara bakın",
+    catalogHigher: (diff) => `Katalog değeri (~€ ${diff}) fiyatınızın ÜZERİNDE olabilir.`,
+    catalogLower: "Satın alma fiyatınız katalog değerinin üzerinde.",
+    vatRefundTitle: "KDV İadesi",
+    vatRefundDesc: (pct, amt, country) => `AB dışı bir alıcı olarak ${country}'den %${pct} KDV iadesi alabilirsiniz (~€ ${amt}). MRN numaranızı EX-A ihracat beyannamesinden takip edin.`,
+    cif: "Satın alma fiyatı (vergi matrahı)", customs: "Gümrük", excise: "ÖTV",
+    vat: (b) => `KDV (%18 × ${b})`, importTaxes: "Toplam ithalat vergileri", catVal: "kategori değeri",
+    exciseNote: "Tahmini · TARIK ile doğrulayın",
+    evExciseNote: "Onaylı (Kanun 03/L-109)",
+    arrival: "Kosova'da teslim maliyeti", over: (x, r) => `+€ ${x} fiyatın üzerinde · +€ ${r} tescil`,
+    toState: "Bunun devlete (Gümrük) giden kısmı", toStateSub: "gümrük + ÖTV + KDV + tescil",
+    locked: (s) => `Oranlar kanunla sabittir · Güncelleme: ${s}. ÖTV & katalog değeri = tahminidir — Gümrük / TARIK ile doğrulayın.`,
+    methodology: "Metodoloji ve yasal dayanak", official: "Resmi kaynaklar",
+    download: "Özeti indir", reset: "Sıfırla",
+    shareTitle: "Sonucu paylaş",
+    shareText: (make, model, year, arrival, price) => `🚗 ${make} ${model} (${year})\n💰 Satın alma fiyatı: €${price}\n📦 Teslim maliyeti: €${arrival}\n\nUra ile hesaplandı — Kosova'ya araç ithalatı`,
+    copyLink: "Bağlantıyı kopyala", copied: "Kopyalandı ✓",
+    soon: "Çok yakında",
+    chips: ["Doğrulanmış geçmiş", "Belge çevirisi", "DE/CH ilanları"], contact: "Satıcıyla iletişime geç",
+    disc: "Resmi olmayan tahmin. Kesin tutarlar Kosova Gümrüğü tarafından onaylanır.",
+    docsTitle: "İthalat ve tescil için belgeler", docsProgress: (a, b) => `${b} belgenin ${a} tanesi tamamlandı`, docsDone: "Gümrükleme için hazır ✓",
+    onboardTitle: "Ura'ya hoş geldiniz!",
+    onboardBody: "Kosova'ya araç ithalatının gerçek maliyetini hesaplayın — gümrük, ÖTV, KDV ve nakliye dahil. Ücretsiz, kayıt gerektirmez.",
+    onboardBtn: "Başla",
+    yearError: "Yıl 1980 ile 2026 arasında olmalıdır.",
+    priceError: "Fiyat €100 ile €500.000 arasında olmalıdır.",
+    ccError: "Motor hacmi 50 ile 10.000 cc arasında olmalıdır.",
+    tipsTitle: "💡 Tasarruf yolları",
+    tipEur1: (amt) => `EUR.1 belgesi isteyin — €${amt} gümrük tasarrufu (EUR.1 ile %0)`,
+    tipAge: (save, yr) => `${yr}+ model yıllı araç arayın (≤8 yıl) — €${save} ÖTV tasarrufu`,
+    tipEngine: (save) => `≤2.000cc motor, mevcut motora göre €${save} ÖTV tasarrufu sağlar`,
+  },
 };
 
 const fmt = (n) => new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(Math.round(n || 0));
@@ -731,6 +795,7 @@ const WIZARD_STEPS = {
   sr: ["Iz koje zemlje?", "Koji model?", "Koliko košta?", "Godina?", "Rezultat"],
   en: ["Where from?", "Which model?", "How much?", "What year?", "Result"],
   de: ["Woher?", "Welches Modell?", "Wie viel?", "Baujahr?", "Ergebnis"],
+  tr: ["Hangi ülkeden?", "Hangi model?", "Ne kadar?", "Hangi yıl?", "Sonuç"],
 };
 
 function WizardMode({ t, lang, C, fmt }) {
@@ -1279,6 +1344,28 @@ function InfoPage({ t, lang, C }) {
         { q: "Šta mi donosi EUR.1 sertifikat?", a: "Sa EUR.1 sertifikatom (dokaz porekla iz EU) carina od 10% se potpuno ukida — to štedi oko €1.000 za automobil vredan €10.000." },
         { q: "Da li je URA stvarno besplatna i koliko su rezultati precizni?", a: "Da, URA je potpuno besplatna, bez registracije i bez reklama. Svi iznosi su procene za orijentaciju — obavezujući obračun vrši Dogana e Kosovës prilikom uvoza." },
       ],
+    },
+    tr: {
+      title: "Ura Hakkında",
+      sub: "Şeffaflık. Dürüstlük. Kosova.",
+      about: "Ura (Arnavutça: Köprü), Almanya, İsviçre veya Avusturya'dan Kosova'ya araç ithalatının gerçek maliyetini hesaplayan ücretsiz, bağımsız bir hesap makinesidir.",
+      disclaimer_title: "Sorumluluk Reddi",
+      disclaimer: "Tüm hesaplamalar tahmini olup yalnızca yol gösterici niteliktedir. Bağlayıcı gümrük tutarlarını yalnızca Dogana e Kosovës (Kosova Gümrüğü) belirler.",
+      contact_title: "İletişim",
+      contact: "Sorular, hatalar veya ortaklık talepleri için:",
+      legal_title: "Yasal",
+      legal: "Bu uygulama kişisel veri toplamaz. Çerez kullanılmaz. Tüm hesaplamalar tarayıcınızda yerel olarak yapılır.",
+      sources_title: "Resmi kaynaklar",
+      faq_title: "Sıkça sorulan sorular",
+      faq: [
+        { q: "Kosova'ya araç ithalatında gümrük vergisi ne kadar?", a: "Standart gümrük oranı, gümrük değeri (fiyat + nakliye + sigorta) üzerinden %10'dur. Geçerli bir EUR.1 belgesi (AB menşeli) ile gümrük vergisi tamamen kalkar (%0)." },
+        { q: "ÖTV (akcizë) nedir ve nasıl hesaplanır?", a: "ÖTV, motor hacmine, araç yaşına ve yakıt türüne bağlı ek bir vergidir. Daha büyük ve daha eski motorlar daha fazla öder. Elektrikli araçlar ÖTV'den muaftır." },
+        { q: "Araç ithalatında KDV ne kadar?", a: "KDV %18'dir ve gümrük değeri, gümrük vergisi ve ÖTV toplamı üzerinden hesaplanır." },
+        { q: "10 yıldan eski bir araç ithal edebilir miyim?", a: "Sadece binek araçlar için hayır. 05/L-132 sayılı Kanun'un 44. maddesi yalnızca \"vetura\" (binek araç) kelimesini kullanır: bunlar 10 yaşından büyükse gümrükten çekilemez veya tescil edilemez, ayrıca minimum Euro 4 şartı vardır. Panelvan, kamyon, iş aracı ve motosikletler için kanunda ayrı bir yaş sınırı yoktur — ithalattan önce kendi durumunuzu Kosova Gümrüğü ile teyit edin." },
+        { q: "10 yıllık sınır panelvan, kamyon veya motosikletler için de geçerli mi?", a: "Hayır. 05/L-132 sayılı Kanun'un 44. maddesi yalnızca \"vetura\" (binek araç) kelimesini kullanır. Panelvan, kamyon, iş aracı ve motosikletler için kanunla belirlenmiş bir yaş sınırı yoktur — bu kategorilerdeki daha eski araçların ithalatı prensipte mümkündür. Gümrük uygulaması durumdan duruma farklılık gösterebileceğinden, önceden Kosova Gümrüğü ile teyit almanızı öneririz." },
+        { q: "EUR.1 belgesi bana ne sağlar?", a: "EUR.1 belgesi (AB menşe kanıtı) ile %10'luk gümrük vergisi tamamen kalkar — €10.000 değerindeki bir araçta bu yaklaşık €1.000 tasarruf demektir." },
+        { q: "Ura gerçekten ücretsiz mi ve sonuçlar ne kadar doğru?", a: "Evet, Ura tamamen ücretsizdir, kayıt veya reklam içermez. Tüm tutarlar yol gösterici tahminlerdir — bağlayıcı hesaplama, ithalat sırasında Dogana e Kosovës (Kosova Gümrüğü) tarafından yapılır." },
+      ],
     }
   };
   const c = content[lang];
@@ -1658,12 +1745,14 @@ function ToolsMode({ lang, C, fmt }) {
     de: !ampCarOnly ? "ℹ️ Keine ausdrückliche Altersgrenze" : !ampOk ? "❌ Import nicht erlaubt" : ampWarn ? "⚠️ Fast zu alt — noch erlaubt" : "✅ Import erlaubt",
     en: !ampCarOnly ? "ℹ️ No explicit age limit" : !ampOk ? "❌ Import not allowed" : ampWarn ? "⚠️ Near age limit — still ok" : "✅ Import allowed",
     sr: !ampCarOnly ? "ℹ️ Nema izričite starosne granice" : !ampOk ? "❌ Uvoz nije dozvoljen" : ampWarn ? "⚠️ Blizu starosne granice — još je ok" : "✅ Uvoz dozvoljen",
+    tr: !ampCarOnly ? "ℹ️ Açık bir yaş sınırı yok" : !ampOk ? "❌ İthalata izin verilmiyor" : ampWarn ? "⚠️ Sınıra yakın — yine de izin var" : "✅ İthalata izin var",
   };
   const ampSub   = {
     sq: ampCarOnly ? `Mosha: ${ampAge} vjet (max. ${ampLimit}) · Euro ${ampEuro} (min. ${TAX_CONFIG.minEuro})` : `Mosha: ${ampAge} vjet · Neni 44 përmend vetëm "vetura" — konfirmo rastin me Doganën`,
     de: ampCarOnly ? `Alter: ${ampAge} J. (max. ${ampLimit}) · Euro ${ampEuro} (mind. ${TAX_CONFIG.minEuro})` : `Alter: ${ampAge} J. · Art. 44 nennt wörtlich nur „vetura" (PKW) — Einzelfall beim Zoll bestätigen`,
     en: ampCarOnly ? `Age: ${ampAge} yrs (max. ${ampLimit}) · Euro ${ampEuro} (min. ${TAX_CONFIG.minEuro})` : `Age: ${ampAge} yrs · Art. 44 names only "vetura" (cars) — confirm your case with Customs`,
     sr: ampCarOnly ? `Starost: ${ampAge} god. (max. ${ampLimit}) · Euro ${ampEuro} (min. ${TAX_CONFIG.minEuro})` : `Starost: ${ampAge} god. · Član 44. pominje samo "vetura" (putnička) — potvrdite slučaj sa Carinom`,
+    tr: ampCarOnly ? `Yaş: ${ampAge} yıl (maks. ${ampLimit}) · Euro ${ampEuro} (min. ${TAX_CONFIG.minEuro})` : `Yaş: ${ampAge} yıl · Madde 44 yalnızca "vetura" (binek araç) der — durumu Gümrük ile teyit edin`,
   };
 
   // ── KM ──────────────────────────────────────────────────────────────────────
@@ -2884,7 +2973,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
             <div className="ura-tagline">{t.tagline}</div>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", gap: 3, background: C.glass, border: `1px solid ${C.line}`, borderRadius: 11, padding: 3 }}>
-            {["sq", "sr", "en", "de"].map((l) => (
+            {["sq", "sr", "en", "de", "tr"].map((l) => (
               <button key={l} onClick={() => setLang(l)} aria-label={`Language ${l}`} style={{ border: "none", cursor: "pointer", fontFamily: "inherit", fontWeight: 700, fontSize: 11.5, padding: "6px 9px", borderRadius: 8, background: lang === l ? C.blue : "transparent", color: lang === l ? C.navy : C.muted, transition: "all .2s" }}>{l.toUpperCase()}</button>
             ))}
           </div>
@@ -3364,6 +3453,25 @@ function PartnerPage({ lang, C, make, model, year, price, engine, fuel, destCoun
       becomeD:   "Predstavite vašu kompaniju ovdje",
       demo:      "DEMO",
       note:      "* FM-International AG je fiktivna demo kompanija. Sve ostale kompanije su realne. Partneri za osiguranje su jos placeholderi — slotovi slobodni.",
+    },
+    tr: {
+      headline:  "Ortaklar & Hizmet Sağlayıcılar",
+      sub:       "Nakliye, gümrükleme ve finansman için doğrulanmış şirketler.",
+      featured:  "Önerilen Ortak",
+      transport: "🚚 Nakliye Ağları",
+      tSub:      "Araç nakliyesi CH / DE / AT → XK / AL / MK — İsviçre diasporası uzmanları",
+      sped:      "📋 Nakliyeciler & Gümrük Acenteleri",
+      sSub:      "Gümrükleme, HS kodu, EUR.1, depo lojistiği",
+      finance:   "💳 Finans Kuruluşları",
+      fSub:      "Araç kredisi ve finansmanı",
+      insurance: "🛡️ Sigorta Şirketleri",
+      iSub:      "İthal araçlar için trafik sigortası & kasko",
+      visit:     "Web sitesi",
+      quote:     "Talep gönder",
+      become:    "Ortak olun",
+      becomeD:   "Şirketinizi burada tanıtın",
+      demo:      "DEMO",
+      note:      "* FM-International AG hayali bir demo şirkettir. Diğer tüm şirketler gerçektir. Sigorta ortakları henüz yer tutucudur — slotlar boş.",
     },
   };
   const L = t[lang] || t.de;
