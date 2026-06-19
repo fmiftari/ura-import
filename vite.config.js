@@ -5,4 +5,5 @@ export default defineConfig({
   plugins: [react()],
   cacheDir: "/tmp/vite-ura-cache",
   base: "/ura-import/",
+  test: { environment: "node" },
 });

@@ -5,7 +5,7 @@ import { Car, Truck, FileText, ShieldCheck, ChevronDown, ArrowRight, Lock, Check
 // URA · Asistenti i importit të veturave  (v3 · standard institucional)
 // >>> BLLOKU I VETËM I NORMAVE LIGJORE <<< — ndryshohet vetëm këtu.
 // ===========================================================================
-const TAX_CONFIG = {
+export const TAX_CONFIG = {
   stand: "Qershor 2026",
   laws: [
     "Ligji Nr. 03/L-109 — Kodi Doganor dhe i Akcizave",
@@ -204,7 +204,7 @@ const VIN_YEAR_MAP = {
 };
 
 // VIN Prüfziffer-Validierung (ISO 3779 / FMVSS)
-function vinCheckDigit(vin) {
+export function vinCheckDigit(vin) {
   const v = vin.toUpperCase();
   const vals = {
     '0':0,'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,
@@ -219,11 +219,11 @@ function vinCheckDigit(vin) {
 }
 
 // Ungültige VIN-Zeichen (I, O, Q verboten per ISO 3779)
-function vinInvalidChars(vin) {
+export function vinInvalidChars(vin) {
   return /[IOQ]/i.test(vin);
 }
 
-function decodeVinLocal(vin) {
+export function decodeVinLocal(vin) {
   if (!vin || vin.length !== 17) return null;
   const v = vin.toUpperCase();
   const wmi = v.slice(0, 3);
@@ -626,9 +626,9 @@ function trackEvent(name, params = {}) {
 }
 const NOW_YEAR = new Date().getFullYear();
 
-function ccBand(cc) { return cc <= 2000 ? "le2000" : cc <= 3000 ? "le3000" : "gt3000"; }
+export function ccBand(cc) { return cc <= 2000 ? "le2000" : cc <= 3000 ? "le3000" : "gt3000"; }
 
-function computeExcise({ cc, ageYears, isNewUnregistered, fuel }) {
+export function computeExcise({ cc, ageYears, isNewUnregistered, fuel }) {
   if (isNewUnregistered || cc <= 0) return 0; // EV (cc=0) & new → 0
   const b = ccBand(cc);
   const tbl = TAX_CONFIG.exciseTable[b]; // [≤8, 9, 10, 11, 12, 13, 14, 15, 16, ≥17]
@@ -636,7 +636,7 @@ function computeExcise({ cc, ageYears, isNewUnregistered, fuel }) {
   return tbl[idx];
 }
 
-function computeCatalogValue({ cc, ageYears }) {
+export function computeCatalogValue({ cc, ageYears }) {
   const band = ccBand(cc);
   const newPrice = TAX_CONFIG.newMarketPrice[band];
   const age = Math.max(0, Math.min(Math.round(ageYears), 15));
@@ -647,7 +647,7 @@ function computeCatalogValue({ cc, ageYears }) {
 // Einheitliche Import-Kostenberechnung für alle Zielländer (XK/AL/MK).
 // Wird vom Hauptrechner, Wizard- und Vergleichsmodus gemeinsam verwendet,
 // damit die Endbeträge in allen Modi konsistent und korrekt sind.
-function computeImportCost({ destCountry, price, transport = 0, insurance = 0, engine = 0, ageYears = 0, isNew = false, fuel = "diesel", hasEur1 = false, vatRefundRate = 0, catalogValue = null, isReturner = false }) {
+export function computeImportCost({ destCountry, price, transport = 0, insurance = 0, engine = 0, ageYears = 0, isNew = false, fuel = "diesel", hasEur1 = false, vatRefundRate = 0, catalogValue = null, isReturner = false }) {
   const cif = price + transport + insurance;
   if (destCountry === "AL") {
     const customs = 0;
@@ -698,13 +698,13 @@ function computeImportCost({ destCountry, price, transport = 0, insurance = 0, e
 }
 
 // URL state encoding / decoding
-function encodeState(state) {
+export function encodeState(state) {
   try {
     const s = { p: state.price, t: state.transport, y: state.year, cc: state.engine, o: state.origin, f: state.fuel, e: state.euro, cat: state.category };
     return btoa(JSON.stringify(s));
   } catch { return ""; }
 }
-function decodeState(hash) {
+export function decodeState(hash) {
   try { return JSON.parse(atob(hash)); } catch { return null; }
 }
 

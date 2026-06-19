@@ -24,6 +24,7 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - run: npx vitest run
       - run: npx vite build
       - uses: actions/configure-pages@v4
       - uses: actions/upload-pages-artifact@v3
