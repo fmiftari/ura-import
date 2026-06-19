@@ -302,11 +302,11 @@ const POPULAR_MODELS = [
 ];
 
 const C = {
-  ink: "#f4efe6", navy: "#0a0e17", blue: "#c9a65a", blueSoft: "rgba(201,166,90,0.12)",
+  ink: "#f4efe6", navy: "#0a0e17", blue: "#c9a65a", blueSoft: "rgba(201,166,90,0.13)",
   green: "#c9a65a", greenDeep: "#a8843c", amber: "#d8a657", amberSoft: "rgba(216,166,87,0.12)",
-  red: "#e0736b", redSoft: "rgba(224,115,107,0.12)", paper: "#10141f",
-  line: "rgba(244,239,230,0.10)", muted: "#8b8d98", surface: "#141926",
-  glass: "rgba(255,255,255,0.04)",
+  red: "#e0736b", redSoft: "rgba(224,115,107,0.12)", paper: "#0d1118",
+  line: "rgba(244,239,230,0.12)", muted: "#9395a0", surface: "#141926",
+  glass: "rgba(255,255,255,0.035)",
 };
 
 const ORIGIN = {
@@ -314,6 +314,10 @@ const ORIGIN = {
   CH: { flag:"🇨🇭", sq:"Zvicër", sr:"Švajcarska", en:"Switzerland", de:"Schweiz", vatRefund:0.077 },
   AT: { flag:"🇦🇹", sq:"Austri", sr:"Austrija", en:"Austria", de:"Österreich", vatRefund:0.20 },
   NL: { flag:"🇳🇱", sq:"Holandë", sr:"Holandija", en:"Netherlands", de:"Niederlande", vatRefund:0.21 },
+  SE: { flag:"🇸🇪", sq:"Suedi", sr:"Švedska", en:"Sweden", de:"Schweden", vatRefund:0.25 },
+  ES: { flag:"🇪🇸", sq:"Spanjë", sr:"Španija", en:"Spain", de:"Spanien", vatRefund:0.21 },
+  PL: { flag:"🇵🇱", sq:"Poloni", sr:"Poljska", en:"Poland", de:"Polen", vatRefund:0.23 },
+  LU: { flag:"🇱🇺", sq:"Luksemburg", sr:"Luksemburg", en:"Luxembourg", de:"Luxemburg", vatRefund:0.17 },
   BE: { flag:"🇧🇪", sq:"Belgjikë", sr:"Belgija", en:"Belgium", de:"Belgien", vatRefund:0.21 },
   FR: { flag:"🇫🇷", sq:"Francë", sr:"Francuska", en:"France", de:"Frankreich", vatRefund:0.20 },
   IT: { flag:"🇮🇹", sq:"Itali", sr:"Italija", en:"Italy", de:"Italien", vatRefund:0.22 },
@@ -601,7 +605,7 @@ const T = {
 };
 
 const fmt = (n) => new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(Math.round(n || 0));
-const transportByOrigin = { DE: 650, CH: 720, AT: 600, NL: 780, BE: 760, FR: 800, IT: 750, KR: 1400 };
+const transportByOrigin = { DE: 650, CH: 720, AT: 600, NL: 780, BE: 760, FR: 800, IT: 750, SE: 900, ES: 850, PL: 700, LU: 760, KR: 1400 };
 const NOW_YEAR = new Date().getFullYear();
 
 function ccBand(cc) { return cc <= 2000 ? "le2000" : cc <= 3000 ? "le3000" : "gt3000"; }
@@ -715,6 +719,7 @@ function WizardMode({ t, lang, C, fmt }) {
   const liveRates = useLiveCurrencyRates();
   const [step, setStep] = useState(0);
   const [wOrigin, setWOrigin] = useState(null);
+  const [originOpen, setOriginOpen] = useState(false);
   const [wModel, setWModel] = useState(null);
   const [wPrice, setWPrice] = useState(8000);
   const [wYear, setWYear] = useState(2020);
@@ -724,11 +729,21 @@ function WizardMode({ t, lang, C, fmt }) {
     { key: "DE", flag: "🇩🇪", label: "Deutschland", transport: 650, vat: 0.19 },
     { key: "CH", flag: "🇨🇭", label: "Schweiz", transport: 720, vat: 0.077 },
     { key: "AT", flag: "🇦🇹", label: "Österreich", transport: 600, vat: 0.20 },
+    { key: "NL", flag: "🇳🇱", label: "Niederlande", transport: 780, vat: 0.21 },
+    { key: "FR", flag: "🇫🇷", label: "Frankreich", transport: 800, vat: 0.20 },
+    { key: "IT", flag: "🇮🇹", label: "Italien", transport: 750, vat: 0.22 },
+    { key: "SE", flag: "🇸🇪", label: "Schweden", transport: 900, vat: 0.25 },
+    { key: "ES", flag: "🇪🇸", label: "Spanien", transport: 850, vat: 0.21 },
   ];
   const MODELS_WIZARD = [
     { label: "VW Golf", cc: 1968, fuel: "diesel", emoji: "🚗" },
     { label: "BMW 3er", cc: 1995, fuel: "diesel", emoji: "🚙" },
     { label: "Mercedes C", cc: 1497, fuel: "petrol", emoji: "🚘" },
+    { label: "Audi A4", cc: 1968, fuel: "diesel", emoji: "🚘" },
+    { label: "Toyota RAV4", cc: 1987, fuel: "hybrid", emoji: "🚙" },
+    { label: "Tesla Model 3", cc: 0, fuel: "ev", emoji: "⚡" },
+    { label: "Hyundai IONIQ 5", cc: 0, fuel: "ev", emoji: "⚡" },
+    { label: "Skoda Octavia", cc: 1968, fuel: "diesel", emoji: "🚗" },
     { label: "Renault Captur", cc: 1461, fuel: "diesel", emoji: "🚕" },
     { label: "Dacia Sandero", cc: 999, fuel: "petrol", emoji: "🚗" },
     { label: "Anderes Auto", cc: 1600, fuel: "diesel", emoji: "🔍" },
@@ -788,22 +803,48 @@ function WizardMode({ t, lang, C, fmt }) {
           <h2 style={{ fontFamily: "'Fraunces',serif", fontSize: 28, fontWeight: 600, marginBottom: 20, color: C.ink }}>
             {lang === "de" ? "Woher kommt das Auto?" : lang === "en" ? "Where is the car from?" : lang === "sq" ? "Nga cili vend vjen vetura?" : "Iz koje zemlje dolazi auto?"}
           </h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {ORIGINS_WIZARD.map(o => (
-              <button key={o.key} onClick={() => { setWOrigin(o); setStep(1); }}
-                style={{ ...btnStyle(wOrigin?.key === o.key), display: "flex", alignItems: "center", gap: 16, textAlign: "left", flex: "none" }}>
-                <span style={{ fontSize: 32 }}>{o.flag}</span>
+          <button onClick={() => setOriginOpen(o => !o)}
+            style={{ width: "100%", display: "flex", alignItems: "center", gap: 14, padding: "14px 16px",
+              border: `2px solid ${originOpen ? C.blue : C.line}`, borderRadius: 16, cursor: "pointer",
+              fontFamily: "inherit", background: originOpen ? C.blueSoft : C.glass, color: C.ink,
+              transition: "all .2s", textAlign: "left" }}>
+            {wOrigin ? (
+              <>
+                <span style={{ fontSize: 28 }}>{wOrigin.flag}</span>
                 <div>
-                  <div style={{ fontSize: 17, fontWeight: 700 }}>{o.label}</div>
-                  <div style={{ fontSize: 12, color: C.muted, fontWeight: 500 }}>
-                    {lang === "de" ? `Transport ~€${o.transport} · MwSt. ${Math.round(o.vat*100)}%` :
-                     `Transport ~€${o.transport} · VAT ${Math.round(o.vat*100)}%`}
+                  <div style={{ fontSize: 16, fontWeight: 700 }}>{wOrigin.label}</div>
+                  <div style={{ fontSize: 11.5, color: C.muted, fontWeight: 500 }}>
+                    {lang === "de" ? `Transport ~€${wOrigin.transport} · MwSt. ${Math.round(wOrigin.vat*100)}%` :
+                     `Transport ~€${wOrigin.transport} · VAT ${Math.round(wOrigin.vat*100)}%`}
                   </div>
                 </div>
-                <ChevronRight size={18} style={{ marginLeft: "auto", color: C.muted }} />
-              </button>
-            ))}
-          </div>
+              </>
+            ) : (
+              <span style={{ fontSize: 15.5, fontWeight: 700, color: C.muted }}>
+                {lang === "de" ? "Land auswählen" : lang === "en" ? "Choose country" : lang === "sq" ? "Zgjedh vendin" : "Izaberi zemlju"}
+              </span>
+            )}
+            <ChevronDown size={20} style={{ marginLeft: "auto", color: C.muted,
+              transform: originOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform .25s" }} />
+          </button>
+          {originOpen && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 10 }}>
+              {ORIGINS_WIZARD.map(o => (
+                <button key={o.key} onClick={() => { setWOrigin(o); setOriginOpen(false); setStep(1); }}
+                  style={{ ...btnStyle(wOrigin?.key === o.key), display: "flex", alignItems: "center", gap: 16, textAlign: "left", flex: "none" }}>
+                  <span style={{ fontSize: 32 }}>{o.flag}</span>
+                  <div>
+                    <div style={{ fontSize: 17, fontWeight: 700 }}>{o.label}</div>
+                    <div style={{ fontSize: 12, color: C.muted, fontWeight: 500 }}>
+                      {lang === "de" ? `Transport ~€${o.transport} · MwSt. ${Math.round(o.vat*100)}%` :
+                       `Transport ~€${o.transport} · VAT ${Math.round(o.vat*100)}%`}
+                    </div>
+                  </div>
+                  <ChevronRight size={18} style={{ marginLeft: "auto", color: C.muted }} />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -913,13 +954,14 @@ function WizardMode({ t, lang, C, fmt }) {
             </h2>
           </div>
 
-          <div style={{ background: `linear-gradient(135deg,#e6c878,${C.blue} 60%,#a8843c)`,
-            borderRadius: 20, padding: "22px", marginBottom: 16, textAlign: "center" }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: C.navy, opacity: .7, letterSpacing: 1,
-              textTransform: "uppercase", marginBottom: 4 }}>
-              {lang === "de" ? "Gesamtkosten" : "Total"}
+          <div style={{ background: `linear-gradient(135deg,#e6c878 0%,${C.blue} 55%,#a8843c 100%)`,
+            borderRadius: 22, padding: "26px 22px", marginBottom: 16, textAlign: "center",
+            boxShadow: "0 12px 40px -8px rgba(201,166,90,.4)" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: C.navy, opacity: .65, letterSpacing: 1.5,
+              textTransform: "uppercase", marginBottom: 6 }}>
+              {lang === "de" ? "Gesamtkosten" : lang === "sq" ? "Kosto totale" : lang === "sr" ? "Ukupan trošak" : "Total cost"}
             </div>
-            <div style={{ fontFamily: "'Fraunces',serif", fontSize: 52, fontWeight: 600, color: C.navy }}>
+            <div style={{ fontFamily: "'Fraunces',serif", fontSize: 58, fontWeight: 700, color: C.navy, lineHeight: 1, letterSpacing: "-1px" }}>
               € {fmt(wCalc.arrival)}
             </div>
             {wDest !== "XK" && (
@@ -1347,8 +1389,8 @@ function SavingsTips({ t, calc, hasEur1, ageYears, engine, fuel, C }) {
   if (tips.length === 0) return null;
 
   return (
-    <div style={{ background: "rgba(16,185,129,0.07)", border: "1.5px solid rgba(16,185,129,0.25)", borderRadius: 16, padding: "14px 16px", marginBottom: 14 }}>
-      <div style={{ fontSize: 12, fontWeight: 800, color: "#059669", letterSpacing: .4, textTransform: "uppercase", marginBottom: 10 }}>{t.tipsTitle}</div>
+    <div style={{ background: "rgba(201,166,90,0.07)", border: "1.5px solid rgba(201,166,90,0.25)", borderRadius: 16, padding: "14px 16px", marginBottom: 14 }}>
+      <div style={{ fontSize: 12, fontWeight: 800, color: "#a8843c", letterSpacing: .4, textTransform: "uppercase", marginBottom: 10 }}>{t.tipsTitle}</div>
       {tips.map((tip, i) => (
         <div key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start", marginBottom: i < tips.length - 1 ? 8 : 0 }}>
           <span style={{ fontSize: 16, flexShrink: 0 }}>{tip.icon}</span>
@@ -1582,7 +1624,7 @@ function ToolsMode({ lang, C, fmt }) {
   const ampLimit = TAX_CONFIG.ageLimitByCategory[ampCat];
   const ampOk    = ampEuro >= TAX_CONFIG.minEuro && ampAge <= ampLimit;
   const ampWarn  = ampOk && ampAge >= ampLimit - 2;
-  const ampClr   = !ampOk ? "#ef4444" : ampWarn ? "#f59e0b" : "#22c55e";
+  const ampClr   = !ampOk ? "#e0736b" : ampWarn ? "#d8a657" : "#a8843c";
   const ampEmoji = !ampOk ? "🔴" : ampWarn ? "🟡" : "🟢";
   const ampMsg   = {
     sq: !ampOk ? "❌ Importi nuk lejohet" : ampWarn ? "⚠️ Afër kufirit — akoma lejohet" : "✅ Importi lejohet",
@@ -1602,7 +1644,7 @@ function ToolsMode({ lang, C, fmt }) {
   const kmExpected = kmAge * 15000;
   const kmRatio    = kmVal / kmExpected;
   const kmStatus   = kmRatio < 0.6 ? "low" : kmRatio > 1.5 ? "high" : "ok";
-  const kmClr      = { low: C.blue, ok: "#22c55e", high: "#ef4444" }[kmStatus];
+  const kmClr      = { low: C.blue, ok: "#a8843c", high: "#e0736b" }[kmStatus];
   const kmMsg      = {
     low:  { sq:"Shumë pak km — mundësi manipulimi ose pak e përdorur", de:"Sehr wenig km — evtl. manipuliert", en:"Very low km — possible manipulation", sr:"Premalo km — moguća manipulacija" },
     ok:   { sq:"KM normal — rrezik i ulët manipulimi", de:"Normale km — kein Verdacht", en:"Normal km — no suspicion", sr:"Normalni km — nema sumnje" },
@@ -1740,11 +1782,11 @@ function ToolsMode({ lang, C, fmt }) {
         <div style={{ marginBottom:14 }}>
           <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:C.muted, marginBottom:5 }}>
             <span>0</span>
-            <span style={{ color:"#22c55e", fontWeight:700 }}>{fmt(kmExpected)} km {lang==="de"?"erwartet":"expected"}</span>
+            <span style={{ color:"#a8843c", fontWeight:700 }}>{fmt(kmExpected)} km {lang==="de"?"erwartet":"expected"}</span>
             <span>{fmt(kmExpected*2)}</span>
           </div>
           <div style={{ background:C.glass, borderRadius:99, height:12, position:"relative", overflow:"hidden" }}>
-            <div style={{ background:`linear-gradient(90deg,#22c55e,${kmClr})`, height:"100%", width:`${Math.min(100,(kmVal/(kmExpected*2))*100)}%`, transition:"width .3s", borderRadius:99 }} />
+            <div style={{ background:`linear-gradient(90deg,#a8843c,${kmClr})`, height:"100%", width:`${Math.min(100,(kmVal/(kmExpected*2))*100)}%`, transition:"width .3s", borderRadius:99 }} />
           </div>
           <div style={{ width:12, height:12, borderRadius:"50%", background:kmClr, border:`2px solid ${C.navy}`, marginTop:-12, marginLeft:`calc(${Math.min(97,(kmVal/(kmExpected*2))*100)}% - 6px)`, transition:"margin .3s", position:"relative" }} />
         </div>
@@ -1839,7 +1881,7 @@ function ToolsMode({ lang, C, fmt }) {
             <div style={toolSub}>EUR · CHF · ALL · USD · GBP · MKD · BAM · RSD</div>
           </div>
         </div>
-        <div style={{ fontSize:11, color: liveRates ? "#22c55e" : C.muted, fontWeight:700, marginBottom:16 }}>
+        <div style={{ fontSize:11, color: liveRates ? "#a8843c" : C.muted, fontWeight:700, marginBottom:16 }}>
           {ratesLoading ? "⏳ " + (lang==="de"?"Lade Live-Kurse…":lang==="sq"?"Duke ngarkuar kurset…":"Loading live rates…")
             : liveRates ? "🟢 " + (lang==="de"?"Live-Kurs":"Kurs live") + " · " + ratesDate
             : "⚠️ " + (lang==="de"?"Offline-Richtwerte":"Offline fallback rates")}
@@ -1917,7 +1959,7 @@ function ToolsMode({ lang, C, fmt }) {
           </div>
           <div style={{ background:C.glass, borderRadius:14, padding:"14px 10px", textAlign:"center" }}>
             <div style={{ fontSize:11, color:C.muted, marginBottom:5 }}>{lang==="de"?"Zinsen gesamt":lang==="sq"?"Interesi total":lang==="sr"?"Ukupna kamata":"Total interest"}</div>
-            <div style={{ fontWeight:800, fontSize:20, color:"#f59e0b" }}>€{fmt(Math.round(finInterest))}</div>
+            <div style={{ fontWeight:800, fontSize:20, color:"#d8a657" }}>€{fmt(Math.round(finInterest))}</div>
           </div>
         </div>
         <div style={{ fontSize:11, color:C.muted, marginTop:12 }}>⚠️ {lang==="de"?"Schätzung. Tatsächliche Konditionen hängen von der Bank ab.":lang==="sq"?"Vlerësim. Kushtet aktuale varen nga banka.":lang==="sr"?"Procena. Stvarni uslovi zavise od banke.":"Estimate only. Actual terms depend on the bank."}</div>
@@ -1935,7 +1977,7 @@ function ToolsMode({ lang, C, fmt }) {
 
         <div style={{ background:C.glass, borderRadius:12, padding:"10px 14px", marginBottom:14, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <span style={{ fontSize:13, fontWeight:700, color:C.muted }}>{lang==="de"?"Fortschritt":lang==="sq"?"Progresi":lang==="sr"?"Napredak":"Progress"}</span>
-          <span style={{ fontSize:15, fontWeight:800, color: docDoneCount === docItems.length ? "#22c55e" : C.blue }}>{docDoneCount} / {docItems.length}</span>
+          <span style={{ fontSize:15, fontWeight:800, color: docDoneCount === docItems.length ? "#a8843c" : C.blue }}>{docDoneCount} / {docItems.length}</span>
         </div>
 
         {docItems.map((it) => (
@@ -1977,6 +2019,106 @@ function ResultsDonut({ segments, total }) {
         />
       ))}
     </svg>
+  );
+}
+
+
+// ── PIN Gate ─────────────────────────────────────────────────────────────────
+const _K = [51,53,54,57]; // obfuscated PIN digits (3569)
+const _PK = "ura_unlocked_v1";
+
+function PinGate({ children }) {
+  const PIN = _K.map(c => String.fromCharCode(c)).join("");
+  const [unlocked, setUnlocked] = React.useState(() => {
+    try { return localStorage.getItem(PIN + _PK) === "1"; }
+    catch { return false; }
+  });
+  const [val, setVal] = React.useState("");
+  const [err, setErr] = React.useState(false);
+  const [shake, setShake] = React.useState(false);
+
+  if (unlocked) return children;
+
+  const attempt = () => {
+    if (val.trim() === PIN) {
+      try { localStorage.setItem(PIN + _PK, "1"); } catch {}
+      setUnlocked(true);
+    } else {
+      setErr(true);
+      setShake(true);
+      setVal("");
+      setTimeout(() => setShake(false), 500);
+      setTimeout(() => setErr(false), 2000);
+    }
+  };
+
+  return (
+    <div style={{
+      minHeight: "100vh", background: "#0a0e17", display: "flex",
+      alignItems: "center", justifyContent: "center", padding: 24,
+      fontFamily: "'Plus Jakarta Sans', sans-serif"
+    }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        @keyframes pgShake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-8px)} 40%,80%{transform:translateX(8px)} }
+        @keyframes pgFade { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+        .pg-box { animation: pgFade .5s cubic-bezier(.22,1,.36,1) both; }
+        .pg-shake { animation: pgShake .45s cubic-bezier(.22,1,.36,1); }
+        .pg-input:focus { outline: none; border-color: #c9a65a !important; box-shadow: 0 0 0 3px rgba(201,166,90,.15); }
+      `}</style>
+      <div className={"pg-box" + (shake ? " pg-shake" : "")} style={{
+        background: "linear-gradient(160deg, #141926, #0d1118)",
+        border: "1px solid rgba(244,239,230,0.12)", borderRadius: 24,
+        padding: "40px 36px", maxWidth: 360, width: "100%", textAlign: "center",
+        boxShadow: "0 8px 40px -8px rgba(0,0,0,.7)"
+      }}>
+        <div style={{
+          width: 52, height: 52, borderRadius: 15, margin: "0 auto 20px",
+          background: "linear-gradient(145deg, #e6c878, #c9a65a 55%, #a8843c)",
+          display: "grid", placeItems: "center",
+          boxShadow: "0 6px 18px -4px rgba(201,166,90,.5)",
+          fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: 26, color: "#0a0e17"
+        }}>U</div>
+        <div style={{ fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: 22, color: "#f4efe6", marginBottom: 6 }}>URA</div>
+        <div style={{ fontSize: 12.5, color: "#9395a0", fontWeight: 500, marginBottom: 28 }}>
+          Privater Bereich — PIN eingeben
+        </div>
+        <input
+          className="pg-input"
+          type="password"
+          inputMode="numeric"
+          maxLength={8}
+          placeholder="••••"
+          value={val}
+          onChange={e => { setVal(e.target.value); setErr(false); }}
+          onKeyDown={e => e.key === "Enter" && attempt()}
+          style={{
+            width: "100%", padding: "13px 16px", borderRadius: 13,
+            border: `1.5px solid ${err ? "#e0736b" : "rgba(244,239,230,0.15)"}`,
+            background: "rgba(255,255,255,0.04)", color: "#f4efe6",
+            fontSize: 20, fontWeight: 600, textAlign: "center",
+            fontFamily: "inherit", boxSizing: "border-box",
+            letterSpacing: 6, marginBottom: 12,
+            transition: "border-color .15s, box-shadow .15s"
+          }}
+          autoFocus
+        />
+        {err && (
+          <div style={{ fontSize: 12, color: "#e0736b", fontWeight: 600, marginBottom: 10 }}>
+            Falscher PIN — bitte nochmal versuchen
+          </div>
+        )}
+        <button onClick={attempt} style={{
+          width: "100%", padding: "13px", borderRadius: 13, border: "none",
+          background: "#c9a65a", color: "#0a0e17", fontSize: 14, fontWeight: 800,
+          cursor: "pointer", fontFamily: "inherit",
+          boxShadow: "0 4px 14px -4px rgba(201,166,90,.5)",
+          transition: "opacity .15s"
+        }}>
+          Entsperren
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -2040,6 +2182,7 @@ export default function App() {
   const [hasEur1, setHasEur1] = useState(false);
   const [isReturner, setIsReturner] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [leadModal,    setLeadModal]    = useState(null);
   const [savedCalcs, setSavedCalcs] = useState(() => {
     try { return JSON.parse(localStorage.getItem("ura_saved_calcs") || "[]"); } catch { return []; }
   });
@@ -2238,9 +2381,9 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
     setHs(""); setIsNew(false); setHasEur1(false); setErrors({}); setDestCountry("XK");
   };
 
-  const inputBox = { width: "100%", padding: "12px 14px", borderRadius: 13, border: `1.5px solid ${C.line}`, fontSize: 15, fontWeight: 600, color: C.ink, outline: "none", background: C.glass, fontFamily: "inherit", boxSizing: "border-box" };
-  const inputErr = { ...inputBox, borderColor: C.red };
-  const lbl = { fontSize: 10.5, fontWeight: 700, color: C.muted, letterSpacing: 1, marginBottom: 7, display: "block", textTransform: "uppercase" };
+  const inputBox = { width: "100%", padding: "11px 13px", borderRadius: 12, border: `1.5px solid ${C.line}`, fontSize: 14.5, fontWeight: 500, color: C.ink, outline: "none", background: "rgba(255,255,255,0.03)", fontFamily: "inherit", boxSizing: "border-box", transition: "border-color .15s, box-shadow .15s" };
+  const inputErr = { ...inputBox, borderColor: C.red, boxShadow: "0 0 0 3px rgba(224,115,107,.12)" };
+  const lbl = { fontSize: 11, fontWeight: 600, color: C.muted, letterSpacing: .4, marginBottom: 6, display: "block" };
   const Select = ({ value, onChange, children, label }) => (
     <div style={{ position: "relative" }}>
       <select aria-label={label} style={{ ...inputBox, appearance: "none", cursor: "pointer" }} value={value} onChange={onChange}>{children}</select>
@@ -2252,17 +2395,18 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
   const responsiveCSS = `
     @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
     *, *::before, *::after { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
-    @keyframes uraRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+    @keyframes uraRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
     @keyframes uraGlow{0%,100%{opacity:.5}50%{opacity:.9}}
-    .ura-rise { animation: uraRise .7s cubic-bezier(.16,1,.3,1) both; }
+    @keyframes uraPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.015)}}
+    .ura-rise { animation: uraRise .5s cubic-bezier(.22,1,.36,1) both; }
     .card {
-      background: linear-gradient(160deg, ${C.surface}, ${C.paper});
+      background: linear-gradient(160deg, ${C.surface} 0%, ${C.paper} 100%);
       border: 1px solid ${C.line};
-      border-radius: 22px;
-      box-shadow: 0 24px 60px -20px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.04);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px -8px rgba(0,0,0,.5), 0 1px 0 rgba(255,255,255,.04) inset;
     }
-    select:focus, input:focus { border-color: ${C.blue} !important; background: rgba(201,166,90,.06); }
-    button:focus-visible { outline: 2px solid ${C.blue}; outline-offset: 2px; }
+    select:focus, input:focus { border-color: ${C.blue} !important; box-shadow: 0 0 0 3px rgba(201,166,90,.12); }
+    button:focus-visible { outline: 2px solid ${C.blue}; outline-offset: 3px; }
     .ura-page {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background: ${C.navy};
@@ -2270,50 +2414,61 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
       color: ${C.ink};
       position: relative;
       overflow-x: hidden;
-      padding: 24px 16px 48px;
+      padding: 24px 16px 56px;
     }
     .ura-outer { max-width: 560px; margin: 0 auto; position: relative; }
-    .ura-header-bar { display: flex; align-items: center; gap: 13px; margin-bottom: 22px; flex-wrap: wrap; }
+    .ura-header-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
     .ura-logo-box {
-      width: 46px; height: 46px; border-radius: 14px;
-      background: linear-gradient(150deg, #e6c878, ${C.blue} 55%, ${C.greenDeep});
+      width: 44px; height: 44px; border-radius: 13px;
+      background: linear-gradient(145deg, #e6c878, ${C.blue} 55%, ${C.greenDeep});
       display: grid; place-items: center; color: ${C.navy};
-      font-family: 'Fraunces', serif; font-weight: 700; font-size: 24px; flex-shrink: 0;
-      box-shadow: 0 8px 22px -6px rgba(201,166,90,.55), inset 0 1px 0 rgba(255,255,255,.4);
+      font-family: 'Fraunces', serif; font-weight: 700; font-size: 22px; flex-shrink: 0;
+      box-shadow: 0 6px 18px -4px rgba(201,166,90,.5), inset 0 1px 0 rgba(255,255,255,.35);
     }
-    .ura-wordmark { font-family: 'Fraunces', serif; font-weight: 700; font-size: 24px; letter-spacing: .5px; line-height: 1; }
-    .ura-tagline { font-size: 12px; color: ${C.muted}; font-weight: 500; letter-spacing: .3px; margin-top: 2px; }
-    .ura-h1 { font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(24px,5vw,34px); line-height: 1.1; margin: 0; letter-spacing: -.3px; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .ura-wordmark { font-family: 'Fraunces', serif; font-weight: 700; font-size: 23px; letter-spacing: .3px; line-height: 1; }
+    .ura-tagline { font-size: 11.5px; color: ${C.muted}; font-weight: 500; letter-spacing: .2px; margin-top: 3px; }
+    .ura-h1 { font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(22px,5vw,32px); line-height: 1.15; margin: 0; letter-spacing: -.4px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .form-grid .full { grid-column: 1 / -1; }
     .calc-layout { display: block; }
     .mobile-legality { display: block; }
     .desktop-legality { display: none; }
     select option { background: ${C.surface}; color: ${C.ink}; }
+    .ura-section-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+      color: ${C.muted}; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+    }
+    .ura-section-label::after { content: ""; flex: 1; height: 1px; background: ${C.line}; }
+    .ura-chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 600; color: ${C.muted};
+      background: rgba(255,255,255,.04); border: 1px solid ${C.line};
+      border-radius: 20px; padding: 4px 10px; letter-spacing: .1px;
+    }
 
     @media (min-width: 640px) {
-      .ura-page { padding: 32px 28px 56px; }
-      .ura-outer { max-width: 680px; }
-      .ura-logo-box { width: 52px; height: 52px; font-size: 26px; border-radius: 16px; }
-      .ura-wordmark { font-size: 28px; }
-      .ura-tagline { font-size: 13px; }
-      .ura-tabs button { flex: 1 1 0 !important; font-size: 12px !important; }
+      .ura-page { padding: 32px 28px 60px; }
+      .ura-outer { max-width: 700px; }
+      .ura-logo-box { width: 50px; height: 50px; font-size: 25px; border-radius: 15px; }
+      .ura-wordmark { font-size: 27px; }
+      .ura-tagline { font-size: 12.5px; }
+      .ura-tabs button { flex: 1 1 0 !important; font-size: 11.5px !important; }
     }
 
     @media (max-width: 639px) {
-      .ura-tabs button { font-size: 10px !important; padding: 9px 2px !important; gap: 3px !important; }
+      .ura-tabs button { font-size: 10px !important; padding: 8px 2px !important; gap: 3px !important; }
     }
 
     @media (max-width: 380px) {
-      .ura-tabs button { flex-basis: 47% !important; font-size: 10.5px !important; }
+      .ura-tabs button { flex-basis: 47% !important; font-size: 10px !important; }
     }
 
     @media (min-width: 1024px) {
-      .ura-page { padding: 40px 40px 60px; }
-      .ura-outer { max-width: 1160px; }
+      .ura-page { padding: 40px 40px 64px; }
+      .ura-outer { max-width: 1180px; }
       .ura-header-bar { margin-bottom: 28px; }
-      .ura-logo-box { width: 58px; height: 58px; font-size: 30px; border-radius: 18px; }
-      .ura-wordmark { font-size: 32px; }
+      .ura-logo-box { width: 56px; height: 56px; font-size: 28px; border-radius: 17px; }
+      .ura-wordmark { font-size: 31px; }
       .calc-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
       .calc-left { position: sticky; top: 24px; }
       .mobile-legality { display: none; }
@@ -2321,13 +2476,13 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
     }
 
     @media (min-width: 1400px) {
-      .ura-outer { max-width: 1300px; }
+      .ura-outer { max-width: 1320px; }
       .calc-layout { gap: 36px; }
     }
 
-    .card { transition: box-shadow .2s; }
+    .card { transition: transform .2s cubic-bezier(.22,1,.36,1), box-shadow .2s cubic-bezier(.22,1,.36,1); }
     @media (hover: hover) {
-      .card:hover { box-shadow: 0 28px 70px -20px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.06); }
+      .card:hover { transform: translateY(-2px); box-shadow: 0 16px 48px -12px rgba(0,0,0,.65), 0 1px 0 rgba(255,255,255,.06) inset; }
     }
 
     @media print {
@@ -2337,6 +2492,24 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
       .ura-outer { max-width: 100% !important; }
     }
 
+    /* ── 2026 utilities ── */
+    .ura-gradient-text {
+      background: linear-gradient(120deg, #e6c878 0%, #c9a65a 40%, #f0d898 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .ura-dot-grid {
+      background-image: radial-gradient(circle, rgba(244,239,230,0.06) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+    .card::before {
+      content: ""; display: block; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(201,166,90,0.35), transparent);
+      border-radius: 20px 20px 0 0;
+    }
+    .card { position: relative; }
+    @keyframes uraGlowPulse { 0%,100%{opacity:.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.05)} }
+
   `;
 
   const rows = [
@@ -2345,7 +2518,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
     { label: t.excise, val: calc.excise, hint: fuel === "ev" ? t.evExciseNote : t.exciseNote, flag: true },
     { label: t.vat(fmt(calc.vatBase)), val: calc.vat },
   ];
-  const SEG_COLORS = ["#c9a65a","#6366f1","#f59e0b","#ef4444","#8b5cf6","#10b981"];
+  const SEG_COLORS = ["#f0d898","#e6c878","#c9a65a","#b8924a","#a8843c","#8a6a2e"];
   const costSegments = [
     { val: price, color: SEG_COLORS[0] },
     { val: (transport||0)+(insurance||0), color: SEG_COLORS[1] },
@@ -2370,6 +2543,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
     { id: "tools",   label: lang==="de"?"Werkzeuge":lang==="en"?"Tools":lang==="sq"?"Mjete":"Alati",     icon: <Wrench size={15} /> },
     { id: "docs",    label: t.tabDocs,                                                                   icon: <ClipboardList size={15} /> },
     { id: "info",    label: lang==="de"?"Info":"Info",                                                   icon: <Gavel size={15} /> },
+    { id: "partner", label: lang==="de"?"Partner":lang==="en"?"Partners":lang==="sq"?"Partnerë":"Partneri", icon: <Building2 size={15} /> },
   ];
   const docDone = DOCS.filter((d) => docChecks[d.id]).length;
 
@@ -2407,10 +2581,10 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
         <div style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
           <span style={{ fontSize: 18, flexShrink: 0 }}>🏠</span>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 800, color: "#22c55e", marginBottom: 4 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#a8843c", marginBottom: 4 }}>
               {lang==="de"?"Rückkehrer-Zollbefreiung aktiv":lang==="sq"?"Lirim doganor për kthyes aktiv":lang==="sr"?"Oslobođenje od carine za povratnike aktivno":"Returnee customs exemption active"}
             </div>
-            <div style={{ fontSize: 11.5, color: "#22c55e", fontWeight: 600, lineHeight: 1.55, opacity: 0.85 }}>
+            <div style={{ fontSize: 11.5, color: "#a8843c", fontWeight: 600, lineHeight: 1.55, opacity: 0.85 }}>
               {lang==="de"?"Art. 39 ZGB-Kosovo: Personen die min. 2 Jahre im Ausland lebten dürfen 1 Fahrzeug zollfrei einführen. Bedingungen: mind. 2 Jahre Auslandsaufenthalt, kein Wiederverkauf für 2 Jahre, nur 1 Fahrzeug/Person, Nachweis bei der Dogana e Kosovës erforderlich."
               :lang==="sq"?"Neni 39 KDK: Personat që kanë jetuar min. 2 vjet jashtë vendit mund të importojnë 1 automjet pa doganë. Kushte: min. 2 vjet jashtë, pa rishitje për 2 vjet, vetëm 1 automjet/person, dëshmi e nevojshme te Dogana e Kosovës."
               :lang==="sr"?"Čl. 39 ZCK: Lica koja su živela min. 2 godine u inostranstvu mogu uvesti 1 vozilo bez carine. Uslovi: min. 2 god. u inostranstvu, bez preprodaje 2 god., samo 1 vozilo/osobi, dokaz potreban pri Carini Kosova."
@@ -2421,9 +2595,9 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
       </div>
     )}
     {origin === "KR" && !isNew && destCountry === "XK" && (
-      <div style={{ marginBottom: 14, background: "rgba(59,130,246,0.08)", border: "1.5px solid rgba(59,130,246,0.25)", borderRadius: 14, padding: "11px 15px", display: "flex", gap: 9, alignItems: "flex-start" }}>
-        <Info size={15} color="#3b82f6" style={{ flexShrink: 0, marginTop: 1 }} />
-        <span style={{ fontSize: 12, color: "#3b82f6", fontWeight: 700, lineHeight: 1.5 }}>
+      <div style={{ marginBottom: 14, background: "rgba(201,166,90,0.08)", border: "1.5px solid rgba(201,166,90,0.25)", borderRadius: 14, padding: "11px 15px", display: "flex", gap: 9, alignItems: "flex-start" }}>
+        <Info size={15} color={C.blue} style={{ flexShrink: 0, marginTop: 1 }} />
+        <span style={{ fontSize: 12, color: C.blue, fontWeight: 700, lineHeight: 1.5 }}>
           🇰🇷 {lang === "de" ? "Kosovo Dogana bewertet koreanische Fahrzeuge zum Kaufpreis — kein Katalogwert." : lang === "sq" ? "Dogana e Kosovës vlerëson vetura koreane sipas çmimit të blerjes — pa vlerë katalogu." : lang === "sr" ? "Kosovska carina vrednuje korejska vozila po kupovnoj ceni — bez kataloške vrednosti." : "Kosovo Customs values Korean cars at purchase price — no catalog valuation applied."}
         </span>
       </div>
@@ -2530,7 +2704,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
       <div style={{ background: "rgba(34,197,94,0.07)", border: "1px solid rgba(34,197,94,0.3)", borderRadius: 16, padding: "14px 16px", marginBottom: 14 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
           <span style={{ fontSize: 24 }}>⚡</span>
-          <div style={{ fontSize: 13.5, fontWeight: 800, color: "#22c55e" }}>
+          <div style={{ fontSize: 13.5, fontWeight: 800, color: "#a8843c" }}>
             {lang==="de"?"Elektrofahrzeug — Steuervorteile":lang==="sq"?"Automjet elektrik — Avantazhe tatimore":lang==="sr"?"Električno vozilo — Poreske prednosti":"Electric vehicle — Tax benefits"}
           </div>
         </div>
@@ -2540,13 +2714,13 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
           return (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(34,197,94,0.1)", borderRadius: 10, padding: "8px 12px" }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#22c55e" }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#a8843c" }}>
                   {lang==="de"?"✅ Akzise-Befreiung (0%)":lang==="sq"?"✅ Liri nga akciza (0%)":lang==="sr"?"✅ Oslobođenje od akcize (0%)":"✅ Excise exemption (0%)"}
                 </span>
-                <span style={{ fontSize: 14, fontWeight: 800, color: "#22c55e" }}>€ 0</span>
+                <span style={{ fontSize: 14, fontWeight: 800, color: "#a8843c" }}>€ 0</span>
               </div>
               {saved > 0 && (
-                <div style={{ fontSize: 12, color: "#22c55e", fontWeight: 700, padding: "0 4px" }}>
+                <div style={{ fontSize: 12, color: "#a8843c", fontWeight: 700, padding: "0 4px" }}>
                   💡 {lang==="de"?`Ersparnis vs. Diesel (${engine||1968}cc, ${ageYears}J.): ca. € ${fmt(Math.round(saved))}`:lang==="sq"?`Kursim vs. naftë (${engine||1968}cc, ${ageYears}v.): ~€ ${fmt(Math.round(saved))}`:lang==="sr"?`Ušteda vs. dizel (${engine||1968}cc, ${ageYears}g.): ~€ ${fmt(Math.round(saved))}`:`Savings vs. diesel (${engine||1968}cc, ${ageYears}yr): ~€ ${fmt(Math.round(saved))}`}
                 </div>
               )}
@@ -2584,11 +2758,17 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
         )}
       </div>
     )}
-    <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-      <button onClick={() => window.print()} style={{ flex: 1, background: C.glass, border: `1.5px solid ${C.line}`, borderRadius: 13, padding: "13px", fontFamily: "inherit", fontWeight: 700, fontSize: 13.5, color: C.ink, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>🖨️ PDF</button>
-      <button onClick={downloadSummary} style={{ flex: 1, background: C.glass, border: `1.5px solid ${C.line}`, borderRadius: 13, padding: "13px", fontFamily: "inherit", fontWeight: 700, fontSize: 13.5, color: C.ink, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}><Download size={16} color={C.blue} /> {t.download}</button>
-      <button onClick={saveCalc} title={lang==="de"?"Berechnung speichern":lang==="sq"?"Ruaj llogaritjen":lang==="sr"?"Sačuvaj kalkulaciju":"Save calculation"} style={{ background: C.glass, border: `1.5px solid ${C.line}`, borderRadius: 13, padding: "13px 16px", fontFamily: "inherit", fontWeight: 700, fontSize: 15, color: C.blue, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>💾</button>
-      <button onClick={resetAll} style={{ background: C.glass, border: `1.5px solid ${C.line}`, borderRadius: 13, padding: "13px 16px", fontFamily: "inherit", fontWeight: 700, fontSize: 13.5, color: C.muted, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, whiteSpace: "nowrap" }}><RotateCcw size={16} color={C.muted} /> {t.reset}</button>
+    <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+      <button onClick={() => { document.title = `URA — ${make||"Auto"} ${model} ${year}`; window.print(); }} style={{ flex: "1 1 120px", background: "linear-gradient(135deg,#e6c878,#c9a65a)", color: "#0a0e17", border: "none", borderRadius: 13, padding: "13px", fontFamily: "inherit", fontWeight: 800, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 7, boxShadow: "0 4px 14px -4px rgba(201,166,90,.45)" }}>
+        <FileText size={15} /> {lang==="de"?"Als PDF speichern":lang==="sq"?"Ruaj si PDF":lang==="sr"?"Sačuvaj kao PDF":"Save as PDF"}
+      </button>
+      <button onClick={downloadSummary} style={{ flex: "1 1 100px", background: C.glass, border: `1.5px solid ${C.line}`, borderRadius: 13, padding: "13px", fontFamily: "inherit", fontWeight: 700, fontSize: 13, color: C.ink, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
+        <Download size={15} color={C.blue} /> {t.download}
+      </button>
+      <button onClick={saveCalc} title={lang==="de"?"Berechnung speichern":lang==="sq"?"Ruaj llogaritjen":lang==="sr"?"Sačuvaj kalkulaciju":"Save"} style={{ background: C.glass, border: `1.5px solid ${C.line}`, borderRadius: 13, padding: "13px 15px", fontFamily: "inherit", fontWeight: 700, fontSize: 14, color: C.blue, cursor: "pointer", display: "flex", alignItems: "center" }}>💾</button>
+      <button onClick={resetAll} style={{ background: C.glass, border: `1.5px solid ${C.line}`, borderRadius: 13, padding: "13px 14px", fontFamily: "inherit", fontWeight: 700, fontSize: 13, color: C.muted, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+        <RotateCcw size={14} color={C.muted} /> {t.reset}
+      </button>
     </div>
     <div style={{ display: "flex", alignItems: "center", gap: 9, background: C.glass, border: `1px solid ${C.line}`, borderRadius: 14, padding: "12px 15px", marginBottom: 12 }}>
       <Lock size={15} color={C.muted} style={{ flexShrink: 0 }} />
@@ -2623,7 +2803,8 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
   </>);
 
   return (
-    <div lang={lang} className="ura-page">
+    <PinGate>
+    <div lang={lang} className="ura-page ura-dot-grid">
       <style>{responsiveCSS}</style>
       {showOnboard && <OnboardOverlay t={t} onClose={() => setShowOnboard(false)} />}
       {showInstall && (
@@ -2637,7 +2818,9 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
           <button onClick={() => setShowInstall(false)} style={{ background: "transparent", border: "none", color: C.muted, cursor: "pointer", fontSize: 18, padding: "4px 6px", lineHeight: 1 }}>✕</button>
         </div>
       )}
-      <div style={{ position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: "60vw", height: "40vh", maxWidth: 700, background: `radial-gradient(circle,rgba(201,166,90,.15),transparent 70%)`, pointerEvents: "none", animation: "uraGlow 6s ease-in-out infinite", zIndex: 0 }} />
+      <div style={{ position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: "70vw", height: "45vh", maxWidth: 800, background: "radial-gradient(ellipse,rgba(201,166,90,.13) 0%,transparent 70%)", pointerEvents: "none", animation: "uraGlowPulse 8s ease-in-out infinite", zIndex: 0 }} />
+      <div style={{ position: "fixed", top: "30vh", left: "10%", width: "30vw", height: "30vh", background: "radial-gradient(ellipse,rgba(99,102,241,.06) 0%,transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
+      <div style={{ position: "fixed", top: "20vh", right: "8%", width: "25vw", height: "25vh", background: "radial-gradient(ellipse,rgba(201,166,90,.07) 0%,transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
       <div className="ura-outer">
 
         <header className="ura-header-bar ura-rise">
@@ -2653,38 +2836,41 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
           </div>
         </header>
 
-        <div className="ura-rise ura-tabs" style={{ display: "flex", flexWrap: "wrap", gap: 5, background: C.glass, border: `1px solid ${C.line}`, borderRadius: 15, padding: 4, marginBottom: 24, animationDelay: ".05s" }}>
+        <div className="ura-rise ura-tabs" style={{ display: "flex", flexWrap: "wrap", gap: 4, background: "rgba(255,255,255,0.03)", border: `1px solid ${C.line}`, borderRadius: 16, padding: "4px", marginBottom: 22, animationDelay: ".05s" }}>
           {tabs.map((tb) => (
-            <button key={tb.id} onClick={() => setTab(tb.id)} style={{ flex: "1 1 30%", minWidth: 0, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5, border: "none", cursor: "pointer", fontFamily: "inherit", fontWeight: 700, fontSize: 11, padding: "10px 4px", borderRadius: 11, background: tab === tb.id ? C.blue : "transparent", color: tab === tb.id ? C.navy : C.muted, transition: "all .25s", boxShadow: tab === tb.id ? "0 6px 16px -6px rgba(201,166,90,.6)" : "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tb.icon} {tb.label}</button>
+            <button key={tb.id} onClick={() => setTab(tb.id)} style={{ flex: "1 1 30%", minWidth: 0, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5, border: "none", cursor: "pointer", fontFamily: "inherit", fontWeight: tab === tb.id ? 700 : 500, fontSize: 11, padding: "9px 4px", borderRadius: 12, background: tab === tb.id ? C.blue : "transparent", color: tab === tb.id ? C.navy : C.muted, transition: "all .2s cubic-bezier(.22,1,.36,1)", boxShadow: tab === tb.id ? "0 4px 12px -4px rgba(201,166,90,.5)" : "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", letterSpacing: ".1px" }}>{tb.icon} {tb.label}</button>
           ))}
         </div>
 
         {tab === "wizard" && (
           <div>
             {/* ── Hero ── */}
-            <div style={{ background: "linear-gradient(135deg,rgba(201,166,90,.12),rgba(59,130,246,.08))", border: `1px solid ${C.line}`, borderRadius: 20, padding: "22px 20px 18px", marginBottom: 20 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
-                <span style={{ fontSize: 36 }}>🚗</span>
+            <div style={{ background: "linear-gradient(135deg,rgba(201,166,90,.09) 0%,rgba(20,25,38,0) 60%)", border: `1px solid rgba(201,166,90,0.2)`, borderRadius: 22, padding: "26px 22px 20px", marginBottom: 20, position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: "linear-gradient(90deg,transparent,rgba(201,166,90,.5),transparent)" }} />
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 14, marginBottom: 14 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 13, background: "rgba(201,166,90,0.12)", border: "1px solid rgba(201,166,90,0.2)", display: "grid", placeItems: "center", flexShrink: 0, marginTop: 2 }}>
+                  <Car size={22} color="#c9a65a" />
+                </div>
                 <div>
-                  <div style={{ fontFamily: "'Fraunces',serif", fontWeight: 800, fontSize: 22, color: C.ink, lineHeight: 1.1 }}>
+                  <div className="ura-gradient-text" style={{ fontFamily: "'Fraunces',serif", fontWeight: 800, fontSize: 22, lineHeight: 1.15 }}>
                     {lang==="de"?"Was kostet dein Auto wirklich bis Kosovo?":lang==="sq"?"Sa kushton vërtet vetura deri në Kosovë?":lang==="sr"?"Koliko zaista košta auto do Kosova?":"What does your car really cost to Kosovo?"}
                   </div>
-                  <div style={{ fontSize: 12.5, color: C.muted, fontWeight: 600, marginTop: 4 }}>
+                  <div style={{ fontSize: 12, color: C.muted, fontWeight: 500, marginTop: 5, letterSpacing: ".1px" }}>
                     {lang==="de"?"Zoll · Akzise · MwSt. · Transport — alles in 30 Sekunden":lang==="sq"?"Dogana · Akciza · TVSH · Transport — gjithçka brenda 30 sekondave":lang==="sr"?"Carina · Akciza · PDV · Transport — sve za 30 sekundi":"Customs · Excise · VAT · Transport — everything in 30 seconds"}
                   </div>
                 </div>
               </div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                 {[
-                  { icon: "✅", text: lang==="de"?"Kostenlos":lang==="sq"?"Falas":lang==="sr"?"Besplatno":"Free" },
-                  { icon: "✅", text: lang==="de"?"Kein Login":lang==="sq"?"Pa regjistrim":lang==="sr"?"Bez registracije":"No sign-up" },
-                  { icon: "✅", text: lang==="de"?"XK · AL · MK":"XK · AL · MK" },
-                  { icon: "✅", text: lang==="de"?"Offizielle Akzise-Tabelle":lang==="sq"?"Tabelë zyrtare akcize":lang==="sr"?"Zvanična tabela akcize":"Official excise table" },
+                  { icon: "✓", text: lang==="de"?"Kostenlos":lang==="sq"?"Falas":lang==="sr"?"Besplatno":"Free" },
+                  { icon: "✓", text: lang==="de"?"Kein Login":lang==="sq"?"Pa regjistrim":lang==="sr"?"Bez registracije":"No sign-up" },
+                  { icon: "✓", text: "XK · AL · MK" },
+                  { icon: "✓", text: lang==="de"?"Offizielle Akzise-Tabelle":lang==="sq"?"Tabelë zyrtare akcize":lang==="sr"?"Zvanična tabela akcize":"Official excise table" },
                 ].map((b, i) => (
-                  <span key={i} style={{ fontSize: 11.5, fontWeight: 700, color: C.muted, background: C.glass, borderRadius: 20, padding: "4px 10px" }}>{b.icon} {b.text}</span>
+                  <span key={i} className="ura-chip">{b.icon} {b.text}</span>
                 ))}
               </div>
-              <button onClick={() => setTab("calc")} style={{ marginTop: 14, width: "100%", background: C.blue, color: C.navy, border: "none", borderRadius: 13, padding: "12px", fontFamily: "inherit", fontWeight: 800, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <button onClick={() => setTab("calc")} style={{ marginTop: 16, width: "100%", background: "linear-gradient(135deg,#e6c878,#c9a65a 50%,#b8963e)", color: C.navy, border: "none", borderRadius: 13, padding: "13px", fontFamily: "inherit", fontWeight: 800, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 4px 20px -4px rgba(201,166,90,.5)", transition: "opacity .15s, transform .15s", letterSpacing: ".2px" }}>
                 <Calculator size={16} /> {lang==="de"?"Profi-Rechner öffnen":lang==="sq"?"Hap kalkulatorin profesional":lang==="sr"?"Otvori profesionalni kalkulator":"Open advanced calculator"}
               </button>
             </div>
@@ -2745,11 +2931,11 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                   const checkOk = local?.checkOk;
                   const hasInvalid = /[IOQ]/.test(v);
                   const segments = [
-                    { chars: v.slice(0,3),  color: "#3b82f6", label: lang==="de"?"Hersteller (WMI)":lang==="sq"?"Prodhuesi (WMI)":lang==="sr"?"Proizvođač (WMI)":"Manufacturer (WMI)", tip: local?.make || "?" },
-                    { chars: v.slice(3,9),  color: "#f59e0b", label: lang==="de"?"Fahrzeugmerkmale (VDS)":lang==="sq"?"Karakteristikat (VDS)":lang==="sr"?"Karakteristike (VDS)":"Vehicle Descriptor (VDS)", tip: lang==="de"?"Modell, Motor, Karosserie":lang==="sq"?"Model, motor, karrocerinë":lang==="sr"?"Model, motor, karoserija":"Model, engine, body" },
-                    { chars: v.slice(9,10), color: "#22c55e", label: lang==="de"?"Modelljahr":lang==="sq"?"Viti":lang==="sr"?"Godište":"Model Year", tip: local?.year ? String(local.year) : "?" },
-                    { chars: v.slice(10,11),color: "#a78bfa", label: lang==="de"?"Werk":lang==="sq"?"Fabrika":lang==="sr"?"Fabrika":"Plant", tip: local?.plant || "?" },
-                    { chars: v.slice(11,17),color: "#64748b", label: lang==="de"?"Seriennummer":lang==="sq"?"Numri serial":lang==="sr"?"Serijski broj":"Serial No.", tip: "" },
+                    { chars: v.slice(0,3),  color: "#e6c878", label: lang==="de"?"Hersteller (WMI)":lang==="sq"?"Prodhuesi (WMI)":lang==="sr"?"Proizvođač (WMI)":"Manufacturer (WMI)", tip: local?.make || "?" },
+                    { chars: v.slice(3,9),  color: "#c9a65a", label: lang==="de"?"Fahrzeugmerkmale (VDS)":lang==="sq"?"Karakteristikat (VDS)":lang==="sr"?"Karakteristike (VDS)":"Vehicle Descriptor (VDS)", tip: lang==="de"?"Modell, Motor, Karosserie":lang==="sq"?"Model, motor, karrocerinë":lang==="sr"?"Model, motor, karoserija":"Model, engine, body" },
+                    { chars: v.slice(9,10), color: "#a8843c", label: lang==="de"?"Modelljahr":lang==="sq"?"Viti":lang==="sr"?"Godište":"Model Year", tip: local?.year ? String(local.year) : "?" },
+                    { chars: v.slice(10,11),color: "#8a6a2e", label: lang==="de"?"Werk":lang==="sq"?"Fabrika":lang==="sr"?"Fabrika":"Plant", tip: local?.plant || "?" },
+                    { chars: v.slice(11,17),color: "#9395a0", label: lang==="de"?"Seriennummer":lang==="sq"?"Numri serial":lang==="sr"?"Serijski broj":"Serial No.", tip: "" },
                   ];
                   return (
                     <div style={{ marginTop: 12, background: "#0a0e1780", borderRadius: 10, padding: "10px 12px" }}>
@@ -2767,11 +2953,11 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                         ))}
                       </div>
                       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                        <span style={{ fontSize: 10.5, fontWeight: 700, color: checkOk ? "#22c55e" : "#ef4444", background: checkOk ? "#22c55e15" : "#ef444415", borderRadius: 8, padding: "3px 8px" }}>
+                        <span style={{ fontSize: 10.5, fontWeight: 700, color: checkOk ? "#a8843c" : "#e0736b", background: checkOk ? "#a8843c15" : "#e0736b15", borderRadius: 8, padding: "3px 8px" }}>
                           {checkOk ? (lang==="de"?"✅ Prüfziffer OK":lang==="sq"?"✅ Shifra kontrolluese OK":lang==="sr"?"✅ Kontrolna cifra OK":"✅ Check digit OK") : (lang==="de"?"⚠️ Prüfziffer ungültig":lang==="sq"?"⚠️ Shifra kontrolluese gabim":lang==="sr"?"⚠️ Kontrolna cifra neispravna":"⚠️ Check digit invalid")}
                         </span>
                         {hasInvalid && (
-                          <span style={{ fontSize: 10.5, fontWeight: 700, color: "#ef4444", background: "#ef444415", borderRadius: 8, padding: "3px 8px" }}>
+                          <span style={{ fontSize: 10.5, fontWeight: 700, color: "#e0736b", background: "#e0736b15", borderRadius: 8, padding: "3px 8px" }}>
                             {lang==="de"?"⚠️ I/O/Q verboten in VIN":lang==="sq"?"⚠️ I/O/Q nuk lejohen në VIN":lang==="sr"?"⚠️ I/O/Q zabranjeni u VIN":"⚠️ I/O/Q not allowed in VIN"}
                           </span>
                         )}
@@ -2879,7 +3065,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                       <div><label style={lbl}>{t.hs}</label><input style={inputBox} value={hs} onChange={(e) => setHs(e.target.value)} /></div>
                     </div>
                     {origin === "KR" && (
-                      <div style={{ marginTop: 8, fontSize: 11.5, color: "#f59e0b", fontWeight: 600, background: "#f59e0b12", borderRadius: 10, padding: "7px 11px" }}>
+                      <div style={{ marginTop: 8, fontSize: 11.5, color: "#d8a657", fontWeight: 600, background: "#d8a65718", borderRadius: 10, padding: "7px 11px" }}>
                         🇰🇷 {lang === "de" ? "Korea-Import: kein EUR.1 — 10% Zoll gilt" : lang === "sq" ? "Import nga Koreja: pa EUR.1 — zbatohet doganë 10%" : lang === "sr" ? "Uvoz iz Koreje: bez EUR.1 — važi carina 10%" : "Korea import: EUR.1 not applicable — 10% customs applies"}
                       </div>
                     )}
@@ -2899,25 +3085,25 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                 <span style={{ fontSize: 12, fontWeight: 700, color: C.muted }}>{lang==="de" ? `Erfüllt Kriterien · ${ageYears} J. · Euro ${euro}` : lang==="sq" ? `Plotëson kriteret · ${ageYears} vjet · Euro ${euro}` : `Meets criteria · ${ageYears} yrs · Euro ${euro}`}</span>
               </div>
               {destCountry === "AL" && (
-                <div style={{ marginBottom: 14, background: "rgba(16,185,129,0.08)", border: "1.5px solid rgba(16,185,129,0.25)", borderRadius: 14, padding: "11px 15px", display: "flex", gap: 9, alignItems: "flex-start" }}>
-                  <Info size={15} color="#10b981" style={{ flexShrink: 0, marginTop: 1 }} />
-                  <span style={{ fontSize: 12, color: "#10b981", fontWeight: 700, lineHeight: 1.5 }}>
+                <div style={{ marginBottom: 14, background: "rgba(201,166,90,0.08)", border: "1.5px solid rgba(201,166,90,0.25)", borderRadius: 14, padding: "11px 15px", display: "flex", gap: 9, alignItems: "flex-start" }}>
+                  <Info size={15} color="#c9a65a" style={{ flexShrink: 0, marginTop: 1 }} />
+                  <span style={{ fontSize: 12, color: "#c9a65a", fontWeight: 700, lineHeight: 1.5 }}>
                     🇦🇱 {t.alInfo}{calc.isLuxury ? " " + t.alLuxuryNote : ""}
                   </span>
                 </div>
               )}
               {destCountry === "MK" && (
-                <div style={{ marginBottom: 14, background: "rgba(16,185,129,0.08)", border: "1.5px solid rgba(16,185,129,0.25)", borderRadius: 14, padding: "11px 15px", display: "flex", gap: 9, alignItems: "flex-start" }}>
-                  <Info size={15} color="#10b981" style={{ flexShrink: 0, marginTop: 1 }} />
-                  <span style={{ fontSize: 12, color: "#10b981", fontWeight: 700, lineHeight: 1.5 }}>
+                <div style={{ marginBottom: 14, background: "rgba(201,166,90,0.08)", border: "1.5px solid rgba(201,166,90,0.25)", borderRadius: 14, padding: "11px 15px", display: "flex", gap: 9, alignItems: "flex-start" }}>
+                  <Info size={15} color="#c9a65a" style={{ flexShrink: 0, marginTop: 1 }} />
+                  <span style={{ fontSize: 12, color: "#c9a65a", fontWeight: 700, lineHeight: 1.5 }}>
                     🇲🇰 {t.mkInfo}
                   </span>
                 </div>
               )}
               {origin === "KR" && !isNew && destCountry === "XK" && (
-                <div style={{ marginBottom: 14, background: "rgba(59,130,246,0.08)", border: "1.5px solid rgba(59,130,246,0.25)", borderRadius: 14, padding: "11px 15px", display: "flex", gap: 9, alignItems: "flex-start" }}>
-                  <Info size={15} color="#3b82f6" style={{ flexShrink: 0, marginTop: 1 }} />
-                  <span style={{ fontSize: 12, color: "#3b82f6", fontWeight: 700, lineHeight: 1.5 }}>
+                <div style={{ marginBottom: 14, background: "rgba(201,166,90,0.08)", border: "1.5px solid rgba(201,166,90,0.25)", borderRadius: 14, padding: "11px 15px", display: "flex", gap: 9, alignItems: "flex-start" }}>
+                  <Info size={15} color={C.blue} style={{ flexShrink: 0, marginTop: 1 }} />
+                  <span style={{ fontSize: 12, color: C.blue, fontWeight: 700, lineHeight: 1.5 }}>
                     🇰🇷 {lang === "de" ? "Kosovo Dogana bewertet koreanische Fahrzeuge zum Kaufpreis — kein Katalogwert." : lang === "sq" ? "Dogana e Kosovës vlerëson vetura koreane sipas çmimit të blerjes — pa vlerë katalogu." : lang === "sr" ? "Kosovska carina vrednuje korejska vozila po kupovnoj ceni — bez kataloške vrednosti." : "Kosovo Customs values Korean cars at purchase price — no catalog valuation applied."}
                   </span>
                 </div>
@@ -2962,14 +3148,14 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
                     {destCountry === "MK" && (
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{ fontSize: 14, fontWeight: 800, color: C.ink, flex: 1 }}>{t.mkExcise}</span>
-                      <span style={{ fontSize: 11, color: fuel==="ev" ? C.greenDeep : "#f59e0b", background: fuel==="ev" ? C.blueSoft : "#f59e0b18", borderRadius: 6, padding: "2px 8px", fontWeight: 700 }}>{fuel==="ev" ? t.mkExciseEvNote : t.mkExciseNote}</span>
+                      <span style={{ fontSize: 11, color: fuel==="ev" ? C.greenDeep : C.amber, background: fuel==="ev" ? C.blueSoft : C.amberSoft, borderRadius: 6, padding: "2px 8px", fontWeight: 700 }}>{fuel==="ev" ? t.mkExciseEvNote : t.mkExciseNote}</span>
                       <span style={{ fontWeight: 800, color: C.ink }}>€ {fmt(calc.excise)}</span>
                     </div>
                     )}
                     {destCountry !== "AL" && destCountry !== "MK" && (
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{ fontSize: 14, fontWeight: 800, color: C.ink, flex: 1 }}>{t.excise}</span>
-                      <span style={{ fontSize: 11, color: "#f59e0b", background: "#f59e0b18", borderRadius: 6, padding: "2px 8px", fontWeight: 700 }}>{t.exciseNote}</span>
+                      <span style={{ fontSize: 11, color: C.amber, background: C.amberSoft, borderRadius: 6, padding: "2px 8px", fontWeight: 700 }}>{t.exciseNote}</span>
                       <span style={{ fontWeight: 800, color: C.ink }}>€ {fmt(calc.excise)}</span>
                     </div>
                     )}
@@ -3013,6 +3199,10 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
           </div>
         )}
 
+        {tab === "partner" && (
+          <PartnerPage lang={lang} C={C} make={make} model={model} year={year} price={price} engine={engine} fuel={fuel} destCountry={destCountry} fmt={fmt} onQuote={setLeadModal} />
+        )}
+
         {tab === "docs" && (
           <div style={{ maxWidth: 700, margin: "0 auto" }}>
             <h2 style={{ fontFamily: "'Fraunces',serif", fontSize: 26, fontWeight: 700, color: C.ink, marginBottom: 8 }}>{t.docsTitle}</h2>
@@ -3031,10 +3221,587 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
           </div>
         )}
 
+      {leadModal && <LeadModal data={leadModal} onClose={() => setLeadModal(null)} C={C} lang={lang} fmt={fmt} />}
+      </div>
+    </div>
+    </PinGate>
+  );
+}
+
+
+// ── FM-International AG Partner Page ────────────────────────────────────────
+
+// ── Partner Page ─────────────────────────────────────────────────────────────
+function PartnerPage({ lang, C, make, model, year, price, engine, fuel, destCountry, fmt, onQuote }) {
+
+  const t = {
+    de: {
+      headline:  "Partner & Dienstleister",
+      sub:       "Geprüfte Unternehmen für Transport, Zollabwicklung und Finanzierung.",
+      featured:  "Empfohlener Partner",
+      transport: "🚚 Transport-Netzwerke",
+      tSub:      "Fahrzeugtransport CH / DE / AT → XK / AL / MK — Schweizer Diaspora-Spezialisten",
+      sped:      "📋 Spediteure & Zollagenturen",
+      sSub:      "Zollabwicklung, HS-Code, EUR.1, Lagerlogistik",
+      finance:   "💳 Finanzinstitute",
+      fSub:      "KFZ-Kredite und Fahrzeugfinanzierung",
+      visit:     "Website",
+      quote:     "Anfrage senden",
+      become:    "Partner werden",
+      becomeD:   "Ihr Unternehmen hier präsentieren",
+      demo:      "DEMO",
+      note:      "* FM-International AG ist eine fiktive Demo-Firma. Alle anderen Unternehmen sind real.",
+    },
+    en: {
+      headline:  "Partners & Service Providers",
+      sub:       "Verified companies for transport, customs clearance, and financing.",
+      featured:  "Featured Partner",
+      transport: "🚚 Transport Networks",
+      tSub:      "Vehicle transport CH / DE / AT → XK / AL / MK — Swiss diaspora specialists",
+      sped:      "📋 Freight Forwarders & Customs Agents",
+      sSub:      "Customs clearance, HS code, EUR.1, warehouse logistics",
+      finance:   "💳 Financial Institutions",
+      fSub:      "Car loans and vehicle financing",
+      visit:     "Website",
+      quote:     "Send inquiry",
+      become:    "Become a partner",
+      becomeD:   "List your company here",
+      demo:      "DEMO",
+      note:      "* FM-International AG is a fictional demo company. All other companies are real.",
+    },
+    sq: {
+      headline:  "Partnerë & Ofrues Shërbimesh",
+      sub:       "Kompani të verifikuara për transport, doganë dhe financim.",
+      featured:  "Partner i Rekomanduar",
+      transport: "🚚 Rrjete Transporti",
+      tSub:      "Transport automjetesh CH / DE / AT → XK / AL / MK — Specialistë diasporës zvicerane",
+      sped:      "📋 Spedicionerë & Agjenci Doganore",
+      sSub:      "Procedura doganore, kodi HS, EUR.1, logjistikë magazinuese",
+      finance:   "💳 Institucione Financiare",
+      fSub:      "Kredi dhe financim automjeti",
+      visit:     "Faqja",
+      quote:     "Dërgo kërkesë",
+      become:    "Bëhu partner",
+      becomeD:   "Prezanto kompaninë tënde këtu",
+      demo:      "DEMO",
+      note:      "* FM-International AG është kompani fiktive demo. Të gjitha kompanitë e tjera janë reale.",
+    },
+    sr: {
+      headline:  "Partneri & Pružaoci Usluga",
+      sub:       "Provjerene kompanije za transport, carinjenje i finansiranje.",
+      featured:  "Preporučeni Partner",
+      transport: "🚚 Transportne Mreže",
+      tSub:      "Transport vozila CH / DE / AT → XK / AL / MK — švicarski specijalisti dijaspore",
+      sped:      "📋 Špediteri & Carinski Agenti",
+      sSub:      "Carinjenje, HS kod, EUR.1, skladišna logistika",
+      finance:   "💳 Finansijske Institucije",
+      fSub:      "Auto krediti i finansiranje vozila",
+      visit:     "Web stranica",
+      quote:     "Pošalji upit",
+      become:    "Postani partner",
+      becomeD:   "Predstavite vašu kompaniju ovdje",
+      demo:      "DEMO",
+      note:      "* FM-International AG je fiktivna demo kompanija. Sve ostale kompanije su realne.",
+    },
+  };
+  const L = t[lang] || t.de;
+
+  const carData = { make, model, year, price, engine, fuel, destCountry };
+
+  const TRANSPORT = [
+    {
+      name:"Gani Transport GmbH",
+      hq:"Zürich, Schweiz",
+      email:"info@ganitransport.ch",
+      url:"https://www.ganitransport.ch",
+      tag:{
+        de:"CH→XK/AL/MK · Wöchentliche Direktfahrten · Türzustellung",
+        en:"CH→XK/AL/MK · weekly direct runs · door-to-door",
+        sq:"CH→XK/AL/MK · udhëtime direkte javore · dorëzim derë-më-derë",
+        sr:"CH→XK/AL/MK · sedmične direktne vožnje · dostava od vrata do vrata",
+      },
+      accent:"#c9a65a", init:"GT",
+    },
+    {
+      name:"Abedini Transport",
+      hq:"Zürich, Schweiz",
+      email:"info@abeldinITransport.ch",
+      url:"https://www.abedinItransport.ch",
+      tag:{
+        de:"CH→XK/AL/MK · Fahrzeugtransport & Umzugsgut · GPS-Tracking",
+        en:"CH→XK/AL/MK · vehicle transport & removals · GPS tracking",
+        sq:"CH→XK/AL/MK · transport automjetesh & shpërngulje · GPS",
+        sr:"CH→XK/AL/MK · transport vozila i selidbe · GPS praćenje",
+      },
+      accent:"#c9a65a", init:"AB",
+    },
+    {
+      name:"Drita Transport GmbH",
+      hq:"Basel, Schweiz",
+      email:"info@dritatransport.ch",
+      url:"https://www.dritatransport.ch",
+      tag:{
+        de:"CH→XK/AL · Diaspora-Spezialist · KFZ + Pakete + Möbel",
+        en:"CH→XK/AL · diaspora specialist · cars + parcels + furniture",
+        sq:"CH→XK/AL · specialist diaspora · vetura + paketa + mobilje",
+        sr:"CH→XK/AL · specijalista dijaspore · vozila + paketi + namještaj",
+      },
+      accent:"#c9a65a", init:"DR",
+    },
+    {
+      name:"Arber Transport AG",
+      hq:"Bern, Schweiz",
+      email:"info@arbertransport.ch",
+      url:"https://www.arbertransport.ch",
+      tag:{
+        de:"CH→XK/AL/MK · KFZ-Überführung & Vollladung · seit 2005",
+        en:"CH→XK/AL/MK · vehicle delivery & full loads · since 2005",
+        sq:"CH→XK/AL/MK · dorëzim automjetesh & ngarkesë e plotë · që nga 2005",
+        sr:"CH→XK/AL/MK · dostava vozila i puni teret · od 2005.",
+      },
+      accent:"#c9a65a", init:"AR",
+    },
+  ];
+
+  const SPEDITION = [
+    {
+      name:"GEIDA sh.p.k.",
+      hq:"Tirana, Shqipëri",
+      email:"info@geida.al",
+      url:"https://www.geida.al",
+      tag:{
+        de:"Albanischer Zoll-Spezialist · HS-Code, EUR.1, Importdokumente",
+        en:"Albanian customs specialist · HS code, EUR.1, import docs",
+        sq:"Specialist doganor shqiptar · kodi HS, EUR.1, dokumenta importi",
+        sr:"Albanski carinski specijalista · HS kod, EUR.1, uvozni dokumenti",
+      },
+      accent:"#c9a65a", init:"GD",
+    },
+    {
+      name:"Albanet Shpedicion",
+      hq:"Durrës, Shqipëri",
+      email:"info@albanet.al",
+      url:"https://www.albanet.al",
+      tag:{
+        de:"Hafen Durrës · Vollservice Zoll & Lagerlogistik AL",
+        en:"Port of Durrës · full-service customs & warehouse AL",
+        sq:"Porti Durrës · shërbim i plotë doganor & logjistikë magazinuese AL",
+        sr:"Luka Durrës · kompletna carinska usluga i skladišna logistika AL",
+      },
+      accent:"#c9a65a", init:"AN",
+    },
+    {
+      name:"Euro-Sped Albania",
+      hq:"Tirana, Shqipëri",
+      email:"info@eurosped.al",
+      url:"https://www.eurosped.al",
+      tag:{
+        de:"Zollabwicklung & Spedition AL/XK/MK · EUR.1-Begleitung",
+        en:"Customs & freight AL/XK/MK · EUR.1 support",
+        sq:"Dogana & spedicion AL/XK/MK · mbështetje EUR.1",
+        sr:"Carina & špedicija AL/XK/MK · podrška EUR.1",
+      },
+      accent:"#c9a65a", init:"ES",
+    },
+    {
+      name:"Kosovo Spedicion",
+      hq:"Prishtinë, Kosovë",
+      email:"info@kosovospedicion.com",
+      url:"https://www.kosovospedicion.com",
+      tag:{
+        de:"Lokale Zollagentur XK · alle Grenzübergänge Kosovo",
+        en:"Local customs agency XK · all Kosovo border crossings",
+        sq:"Agjenci doganore lokale XK · të gjitha pikat kufitare të Kosovës",
+        sr:"Lokalna carinska agencija XK · svi granični prelazi Kosova",
+      },
+      accent:"#c9a65a", init:"KS",
+    },
+  ];
+
+  const FINANCE = [
+    {
+      name:"BKT — Banka Kombëtare",
+      hq:"Tirana, Shqipëri",
+      email:"info@bkt.com.al",
+      url:"https://www.bkt.com.al",
+      tag:{
+        de:"Albaniens größte Bank · KFZ-Kredit & Leasing für Import",
+        en:"Albania's largest bank · car loan & leasing for imports",
+        sq:"Banka më e madhe e Shqipërisë · kredi & leasing auto për import",
+        sr:"Najveca albanska banka · auto kredit & lizing za uvoz",
+      },
+      accent:"#c9a65a", init:"BKT",
+    },
+    {
+      name:"Credins Bank",
+      hq:"Tirana, Shqipëri",
+      email:"info@credinsbank.com",
+      url:"https://www.credinsbank.com",
+      tag:{
+        de:"Zweitgrößte albanische Bank · schnelle KFZ-Kreditvergabe",
+        en:"2nd largest Albanian bank · fast car loan approval",
+        sq:"Banka e dytë më e madhe shqiptare · miratim i shpejtë i kredisë auto",
+        sr:"2. najveca albanska banka · brzo odobrenje auto kredita",
+      },
+      accent:"#c9a65a", init:"CR",
+    },
+    {
+      name:"BPB Bank Kosovo",
+      hq:"Prishtinë, Kosovë",
+      email:"info@bankbpb.com",
+      url:"https://www.bankbpb.com",
+      tag:{
+        de:"Kosovos größte lokal geführte Bank · KFZ-Finanzierung XK",
+        en:"Kosovo's largest locally-run bank · vehicle financing XK",
+        sq:"Banka më e madhe me menaxhim lokal në Kosovë · financim automjeti XK",
+        sr:"Najveca lokalno vođena banka Kosova · finansiranje vozila XK",
+      },
+      accent:"#c9a65a", init:"BPB",
+    },
+    {
+      name:"Raiffeisen Bank Albania",
+      hq:"Tirana, Shqipëri",
+      email:"info@raiffeisen.al",
+      url:"https://www.raiffeisen.al",
+      tag:{
+        de:"Marktführer AL · günstiger Auto-Kredit, schnelle Auszahlung",
+        en:"Market leader AL · competitive car loan, fast disbursement",
+        sq:"Lider tregu AL · kredi auto konkurruese, disbursim i shpejtë",
+        sr:"Lider tržišta AL · povoljni auto kredit, brza isplata",
+      },
+      accent:"#c9a65a", init:"RB",
+    },
+  ];
+
+  // ── Category icon helper ────────────────────────────────────────────────
+  const CatIcon = ({ cat, accent, size=22 }) => {
+    const s = { color: accent };
+    if (cat === "transport") return <Truck size={size} style={s} />;
+    if (cat === "sped")      return <ClipboardList size={size} style={s} />;
+    return <Landmark size={size} style={s} />;
+  };
+
+  // ── Section divider ──────────────────────────────────────────────────────
+  const SectionHeader = ({ title, sub, cat }) => {
+    const accent = "#c9a65a";
+    return (
+      <div style={{ display:"flex", alignItems:"center", gap:14, marginTop:40, marginBottom:20 }}>
+        <div style={{ width:40, height:40, borderRadius:12, background:`${accent}12`, border:`1.5px solid ${accent}25`, display:"grid", placeItems:"center", flexShrink:0 }}>
+          <CatIcon cat={cat} accent={accent} size={18} />
+        </div>
+        <div>
+          <div style={{ fontSize:16, fontWeight:800, color:C.ink, letterSpacing:-.2 }}>{title}</div>
+          <div style={{ fontSize:12, color:C.muted, marginTop:1 }}>{sub}</div>
+        </div>
+      </div>
+    );
+  };
+
+  // ── Company card ─────────────────────────────────────────────────────────
+  const CompanyCard = ({ co, cat }) => {
+    const [hov, setHov] = React.useState(false);
+    const accent = co.accent;
+    return (
+      <div
+        onMouseEnter={() => setHov(true)}
+        onMouseLeave={() => setHov(false)}
+        style={{
+          background: C.card,
+          borderRadius: 16,
+          border: `1.5px solid ${hov ? accent+"55" : C.line}`,
+          overflow: "hidden",
+          display: "flex", flexDirection: "column",
+          boxShadow: hov ? `0 8px 32px ${accent}18` : "0 1px 4px rgba(0,0,0,.05)",
+          transition: "border-color .18s, box-shadow .18s, transform .18s",
+          transform: hov ? "translateY(-2px)" : "none",
+        }}
+      >
+        {/* Accent top bar */}
+        <div style={{ height: 3, background: `linear-gradient(90deg, ${accent}, ${accent}55)` }} />
+
+        <div style={{ padding: "16px 16px 14px", display:"flex", flexDirection:"column", gap:12, flexGrow:1 }}>
+
+          {/* Header row */}
+          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+            <div style={{ width:44, height:44, borderRadius:12, background:`${accent}0f`, border:`1.5px solid ${accent}22`, display:"grid", placeItems:"center", flexShrink:0 }}>
+              <CatIcon cat={cat} accent={accent} size={20} />
+            </div>
+            <div style={{ minWidth:0 }}>
+              <div style={{ fontWeight:800, fontSize:13.5, color:C.ink, lineHeight:1.25, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{co.name}</div>
+              <div style={{ fontSize:11, color:C.muted, marginTop:2, fontWeight:500 }}>📍 {co.hq}</div>
+            </div>
+          </div>
+
+          {/* Description */}
+          <p style={{ fontSize:12.5, color:C.muted, lineHeight:1.55, margin:0, flexGrow:1 }}>
+            {co.tag[lang] || co.tag.de}
+          </p>
+
+          {/* Actions */}
+          <div style={{ display:"flex", gap:8 }}>
+            <a
+              href={co.url} target="_blank" rel="noreferrer"
+              style={{ flex:"0 0 auto", display:"inline-flex", alignItems:"center", gap:4, padding:"8px 12px", background:"transparent", border:`1.5px solid ${C.line}`, borderRadius:10, fontSize:12, fontWeight:600, color:C.muted, textDecoration:"none", letterSpacing:.2 }}
+            >
+              <ExternalLink size={12} /> {L.visit}
+            </a>
+            <button
+              onClick={() => onQuote({ partner: co, carData })}
+              style={{ flex:1, padding:"8px 0", background:accent, border:"none", borderRadius:10, fontSize:12.5, fontWeight:700, color:"#fff", cursor:"pointer", fontFamily:"inherit", letterSpacing:.2 }}
+            >
+              {L.quote}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ── Become-a-partner slot ────────────────────────────────────────────────
+  const BecomePartner = () => (
+    <button
+      onClick={() => onQuote({ partner:{ name:"URA Partner-Programm", email:"partner@ura-import.info", color:"#fffbf0", accent:"#c9a65a", init:"URA", hq:"" }, carData })}
+      style={{ background:"transparent", border:`1.5px dashed rgba(201,166,90,.4)`, borderRadius:16, padding:"20px 16px", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:8, minHeight:160, cursor:"pointer", fontFamily:"inherit", width:"100%", transition:"border-color .2s, background .2s" }}
+    >
+      <div style={{ width:40, height:40, borderRadius:12, background:"rgba(201,166,90,.1)", border:"1.5px solid rgba(201,166,90,.3)", display:"grid", placeItems:"center" }}>
+        <span style={{ fontSize:20, lineHeight:1 }}>+</span>
+      </div>
+      <div style={{ fontWeight:700, fontSize:13, color:C.ink }}>{L.become}</div>
+      <div style={{ fontSize:11.5, color:C.muted, textAlign:"center", maxWidth:160 }}>{L.becomeD}</div>
+    </button>
+  );
+
+  // ── Featured / Sponsored partner card ────────────────────────────────────
+  const FeaturedCard = ({ co, cat }) => {
+    const [hov, setHov] = React.useState(false);
+    const accent = co.accent;
+    return (
+      <div
+        onMouseEnter={() => setHov(true)}
+        onMouseLeave={() => setHov(false)}
+        style={{
+          gridColumn: "1 / -1",
+          background: `linear-gradient(135deg, ${accent}10 0%, rgba(20,25,38,0) 60%)`,
+          borderRadius: 18,
+          border: `1.5px solid ${accent}55`,
+          overflow: "hidden",
+          display: "flex", alignItems: "center", gap: 20,
+          boxShadow: hov ? `0 8px 32px ${accent}20` : `0 4px 20px ${accent}10`,
+          transition: "box-shadow .2s, transform .2s",
+          transform: hov ? "translateY(-1px)" : "none",
+          padding: "18px 20px",
+          position: "relative",
+        }}
+      >
+        {/* Gradient top line */}
+        <div style={{ position:"absolute", top:0, left:0, right:0, height:2, background:`linear-gradient(90deg, transparent, ${accent}, transparent)` }} />
+
+        {/* Sponsored badge */}
+        <div style={{ position:"absolute", top:12, right:14, fontSize:9.5, fontWeight:800, color:accent, letterSpacing:1, textTransform:"uppercase", background:`${accent}18`, borderRadius:6, padding:"3px 7px", border:`1px solid ${accent}33` }}>
+          {lang==="de"?"⭐ Empfohlen":lang==="sq"?"⭐ Rekomanduar":lang==="sr"?"⭐ Preporučeno":"⭐ Featured"}
+        </div>
+
+        {/* Icon */}
+        <div style={{ width:56, height:56, borderRadius:15, background:`${accent}14`, border:`1.5px solid ${accent}30`, display:"grid", placeItems:"center", flexShrink:0 }}>
+          <CatIcon cat={cat} accent={accent} size={26} />
+        </div>
+
+        {/* Info */}
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ fontSize:16, fontWeight:800, color:C.ink, marginBottom:2 }}>{co.name}</div>
+          <div style={{ fontSize:12, color:C.muted, marginBottom:6 }}>📍 {co.hq}</div>
+          <p style={{ fontSize:13, color:C.muted, lineHeight:1.5, margin:0 }}>{co.tag[lang] || co.tag.de}</p>
+        </div>
+
+        {/* Actions */}
+        <div style={{ display:"flex", flexDirection:"column", gap:8, flexShrink:0 }}>
+          <button
+            onClick={() => onQuote({ partner: co, carData })}
+            style={{ padding:"10px 20px", background:accent, border:"none", borderRadius:11, fontSize:13, fontWeight:700, color:"#fff", cursor:"pointer", fontFamily:"inherit", boxShadow:`0 4px 14px ${accent}40`, whiteSpace:"nowrap" }}
+          >
+            {L.quote}
+          </button>
+          <a
+            href={co.url} target="_blank" rel="noreferrer"
+            style={{ textAlign:"center", padding:"8px 12px", background:"transparent", border:`1.5px solid ${C.line}`, borderRadius:10, fontSize:12, fontWeight:600, color:C.muted, textDecoration:"none" }}
+          >
+            <ExternalLink size={11} style={{ marginRight:4 }} />{L.visit}
+          </a>
+        </div>
+      </div>
+    );
+  };
+
+  const grid = { display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))", gap:14, marginBottom:8 };
+
+  return (
+    <div style={{ maxWidth: 760, margin: "0 auto" }}>
+      {/* Page header */}
+      <h2 style={{ fontFamily:"'Fraunces',serif", fontSize:26, fontWeight:700, color:C.ink, marginBottom:4 }}>{L.headline}</h2>
+      <p style={{ color:C.muted, fontSize:14, marginBottom:0 }}>{L.sub}</p>
+
+      {/* Transport */}
+      <SectionHeader title={L.transport} sub={L.tSub} cat="transport" />
+      <div style={grid}>
+        <FeaturedCard co={TRANSPORT[0]} cat="transport" />
+        {TRANSPORT.slice(1).map((co,i) => <CompanyCard key={i} co={co} cat="transport" />)}
+        <BecomePartner />
+      </div>
+
+      {/* Spedition */}
+      <SectionHeader title={L.sped} sub={L.sSub} cat="sped" />
+      <div style={grid}>
+        <FeaturedCard co={SPEDITION[0]} cat="sped" />
+        {SPEDITION.slice(1).map((co,i) => <CompanyCard key={i} co={co} cat="sped" />)}
+        <BecomePartner />
+      </div>
+
+      {/* Finance */}
+      <SectionHeader title={L.finance} sub={L.fSub} cat="finance" />
+      <div style={grid}>
+        <FeaturedCard co={FINANCE[0]} cat="finance" />
+        {FINANCE.slice(1).map((co,i) => <CompanyCard key={i} co={co} cat="finance" />)}
+        <BecomePartner />
+      </div>
+
+      <p style={{ fontSize:11, color:C.muted, textAlign:"center", marginTop:20, marginBottom:4 }}>{L.note}</p>
+    </div>
+  );
+}
+
+
+// ── Lead Modal ────────────────────────────────────────────────────────────────
+// FORMSPREE: replace XXXXXXXX with your form ID from formspree.io
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/XXXXXXXX";
+
+function LeadModal({ data, onClose, C, lang, fmt }) {
+  const { partner, carData } = data;
+  const [form, setForm]     = useState({ name:"", email:"", phone:"", message:"" });
+  const [status, setStatus] = useState("idle"); // idle | sending | success | error
+  const [leadId]            = useState(() => {
+    const d = new Date();
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const rand  = Array.from({length:6}, () => chars[Math.floor(Math.random()*chars.length)]).join("");
+    return `URA-${String(d.getFullYear()).slice(2)}${String(d.getMonth()+1).padStart(2,"0")}-${rand}`;
+  });
+
+  const destLabel = carData.destCountry==="AL"?"Albanien":carData.destCountry==="MK"?"Nordmazedonien":"Kosovo";
+  const fuelLabel = carData.fuel==="ev"?"Elektro":carData.fuel==="hybrid"?"Hybrid":carData.fuel==="petrol"?"Benzin":"Diesel";
+
+  const lbl = { de:{name:"Ihr Name",email:"E-Mail",phone:"Telefon (optional)",msg:"Nachricht",send:"Anfrage absenden",cancel:"Abbrechen",for:"Anfrage an",car:"Fahrzeug",successTitle:"Anfrage gesendet!",successMsg:"Ihre Lead-ID:",successNote:"Bitte notieren Sie diese ID — sie dient als Nachweis für Ihre Anfrage.",copy:"Kopieren",close:"Schließen",sending:"Wird gesendet…",error:"Fehler beim Senden. Bitte versuchen Sie es erneut."},en:{name:"Your name",email:"E-mail",phone:"Phone (optional)",msg:"Message",send:"Submit inquiry",cancel:"Cancel",for:"Inquiry to",car:"Vehicle",successTitle:"Inquiry sent!",successMsg:"Your lead ID:",successNote:"Please note this ID — it serves as proof of your inquiry.",copy:"Copy",close:"Close",sending:"Sending…",error:"Error sending. Please try again."},sq:{name:"Emri juaj",email:"E-mail",phone:"Telefon (opsional)",msg:"Mesazhi",send:"Dërgo kërkesën",cancel:"Anulo",for:"Kërkesë për",car:"Automjeti",successTitle:"Kërkesa u dërgua!",successMsg:"ID-ja juaj:",successNote:"Shënojeni këtë ID — shërben si dëshmi e kërkesës tuaj.",copy:"Kopjo",close:"Mbylle",sending:"Duke dërguar…",error:"Gabim gjatë dërgimit. Provo përsëri."},sr:{name:"Vaše ime",email:"E-pošta",phone:"Telefon (opciono)",msg:"Poruka",send:"Pošalji upit",cancel:"Otkaži",for:"Upit za",car:"Vozilo",successTitle:"Upit poslan!",successMsg:"Vaš lead ID:",successNote:"Zabilježite ovaj ID — služi kao dokaz vašeg upita.",copy:"Kopiraj",close:"Zatvori",sending:"Slanje…",error:"Greška pri slanju. Pokušajte ponovo."} };
+  const T = lbl[lang] || lbl.de;
+
+  const handleSubmit = async e => {
+    e.preventDefault();
+    if (!form.name || !form.email) return;
+    setStatus("sending");
+    try {
+      const res = await fetch(FORMSPREE_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({
+          leadId,
+          partner:       partner.name,
+          partnerEmail:  partner.email,
+          contactName:   form.name,
+          contactEmail:  form.email,
+          contactPhone:  form.phone,
+          message:       form.message,
+          vehicle:       `${carData.make} ${carData.model} (${carData.year})`,
+          price:         `${fmt(carData.price)} EUR`,
+          engine:        `${carData.engine} ccm / ${fuelLabel}`,
+          destination:   destLabel,
+          timestamp:     new Date().toISOString(),
+          _subject:      `[URA Lead ${leadId}] ${carData.make} ${carData.model} → ${partner.name}`,
+        }),
+      });
+      setStatus(res.ok ? "success" : "error");
+    } catch { setStatus("error"); }
+  };
+
+  const overlay = { position:"fixed", inset:0, background:"rgba(0,0,0,.55)", backdropFilter:"blur(4px)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:16 };
+  const modal   = { background: C.card, borderRadius: 22, width: "100%", maxWidth: 480, boxShadow: "0 24px 80px rgba(0,0,0,.25)", overflow: "hidden", maxHeight: "90vh", overflowY: "auto" };
+  const inp     = { width:"100%", background:C.glass, border:`1.5px solid ${C.line}`, borderRadius:10, padding:"10px 12px", fontSize:13.5, fontFamily:"inherit", color:C.ink, outline:"none", boxSizing:"border-box" };
+
+  return (
+    <div style={overlay} onClick={e => e.target===e.currentTarget && onClose()}>
+      <div style={modal}>
+        {/* Header */}
+        <div style={{ background:`linear-gradient(120deg,${partner.color||"#0f1b2d"},${partner.accent||"#1a3353"}22)`, padding:"18px 20px 14px", borderBottom:`1px solid ${C.line}` }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+            <div>
+              <div style={{ fontSize:11, fontWeight:700, color:C.muted, letterSpacing:.8, textTransform:"uppercase" }}>{T.for}</div>
+              <div style={{ fontSize:17, fontWeight:900, color:C.ink, marginTop:2 }}>{partner.name}</div>
+            </div>
+            <button onClick={onClose} style={{ background:"transparent", border:"none", fontSize:20, cursor:"pointer", color:C.muted, lineHeight:1, padding:2 }}>✕</button>
+          </div>
+          {/* Car summary */}
+          <div style={{ marginTop:12, background:C.glass, border:`1px solid ${C.line}`, borderRadius:10, padding:"8px 12px", fontSize:12.5, color:C.muted, fontWeight:600 }}>
+            🚗 {carData.make} {carData.model} ({carData.year}) · {fmt(carData.price)} EUR · {destLabel}
+          </div>
+          {/* Lead ID */}
+          <div style={{ marginTop:8, display:"inline-flex", alignItems:"center", gap:6, background:"rgba(201,166,90,.12)", border:"1px solid rgba(201,166,90,.35)", borderRadius:8, padding:"4px 10px" }}>
+            <span style={{ fontSize:10.5, fontWeight:700, color:"#c9a65a" }}>Lead-ID</span>
+            <span style={{ fontSize:11.5, fontWeight:900, color:C.ink, letterSpacing:.5 }}>{leadId}</span>
+          </div>
+        </div>
+
+        {status === "success" ? (
+          <div style={{ padding:"28px 22px", textAlign:"center" }}>
+            <div style={{ fontSize:40, marginBottom:10 }}>✅</div>
+            <div style={{ fontSize:18, fontWeight:900, color:C.ink, marginBottom:6 }}>{T.successTitle}</div>
+            <div style={{ fontSize:12.5, color:C.muted, marginBottom:16 }}>{T.successNote}</div>
+            <div style={{ background:"rgba(201,166,90,.1)", border:"1.5px solid rgba(201,166,90,.4)", borderRadius:12, padding:"12px 16px", marginBottom:20 }}>
+              <div style={{ fontSize:11, color:"#c9a65a", fontWeight:700, marginBottom:4 }}>{T.successMsg}</div>
+              <div style={{ fontSize:22, fontWeight:900, color:C.ink, letterSpacing:2 }}>{leadId}</div>
+            </div>
+            <button onClick={() => { navigator.clipboard?.writeText(leadId); }}
+              style={{ background:C.glass, border:`1px solid ${C.line}`, borderRadius:10, padding:"9px 18px", fontSize:13, fontWeight:700, color:C.muted, cursor:"pointer", fontFamily:"inherit", marginRight:8 }}>
+              {T.copy}
+            </button>
+            <button onClick={onClose}
+              style={{ background:"linear-gradient(120deg,#0f1b2d,#1a3353)", border:"none", borderRadius:10, padding:"9px 18px", fontSize:13, fontWeight:700, color:"#c9a65a", cursor:"pointer", fontFamily:"inherit" }}>
+              {T.close}
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} style={{ padding:"18px 20px 20px" }}>
+            <div style={{ display:"grid", gap:12 }}>
+              <div>
+                <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5 }}>{T.name} *</label>
+                <input required style={inp} value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="Max Mustermann" />
+              </div>
+              <div>
+                <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5 }}>{T.email} *</label>
+                <input required type="email" style={inp} value={form.email} onChange={e=>setForm(f=>({...f,email:e.target.value}))} placeholder="max@example.com" />
+              </div>
+              <div>
+                <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5 }}>{T.phone}</label>
+                <input style={inp} value={form.phone} onChange={e=>setForm(f=>({...f,phone:e.target.value}))} placeholder="+49 151 ..." />
+              </div>
+              <div>
+                <label style={{ display:"block", fontSize:12, fontWeight:700, color:C.muted, marginBottom:5 }}>{T.msg}</label>
+                <textarea rows={3} style={{...inp, resize:"vertical"}} value={form.message} onChange={e=>setForm(f=>({...f,message:e.target.value}))} />
+              </div>
+            </div>
+            {status==="error" && <div style={{ marginTop:10, fontSize:12.5, color:"#dc2626", fontWeight:600 }}>{T.error}</div>}
+            <div style={{ display:"flex", gap:10, marginTop:16 }}>
+              <button type="button" onClick={onClose}
+                style={{ flex:1, background:C.glass, border:`1px solid ${C.line}`, borderRadius:12, padding:"12px", fontSize:13.5, fontWeight:700, color:C.muted, cursor:"pointer", fontFamily:"inherit" }}>
+                {T.cancel}
+              </button>
+              <button type="submit" disabled={status==="sending"}
+                style={{ flex:2, background:"linear-gradient(120deg,#0f1b2d,#1a3353)", border:"none", borderRadius:12, padding:"12px", fontSize:13.5, fontWeight:800, color:"#c9a65a", cursor:"pointer", fontFamily:"inherit", opacity:status==="sending"?.6:1 }}>
+                {status==="sending" ? T.sending : T.send}
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
 }
+
 
 function Toggle({ on, set, label }) {
   return (
