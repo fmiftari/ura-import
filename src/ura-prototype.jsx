@@ -1,5 +1,8 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { Car, Truck, FileText, ShieldCheck, ChevronDown, ArrowRight, Lock, CheckCircle2, AlertTriangle, Download, ScrollText, ExternalLink, Building2, ScanLine, RotateCcw, Calculator, ClipboardList, Landmark, Info, Share2, Copy, Check, Scale, GitCompare, Gavel, Users, TrendingUp, ChevronRight, Home, Wrench } from "lucide-react";
+import { Car, Truck, FileText, ShieldCheck, ChevronDown, ArrowRight, Lock, CheckCircle2, AlertTriangle, Download, ScrollText, ExternalLink, Building2, ScanLine, RotateCcw, Calculator, ClipboardList, Landmark, Info, Share2, Copy, Check, Scale, GitCompare, Gavel, Users, TrendingUp, ChevronRight, Home, Wrench, Send } from "lucide-react";
+// Opt-in companion-API hook — inert unless VITE_API_BASE is configured at build time.
+// See server/README.md "Frontend integration" and src/api.js for details.
+import { apiEnabled, submitCalculation } from "./api.js";
 
 // ===========================================================================
 // URA · Asistenti i importit të veturave  (v3 · standard institucional)
@@ -1643,6 +1646,44 @@ function SharePanel({ t, make, model, year, arrival, price, lang }) {
   );
 }
 
+// ─── SEND TO PARTNER/CUSTOMS (opt-in companion-API hook) ────────────────────
+// Deliberately its own small component rather than inline JSX inside App() —
+// keeping it isolated avoids a Rollup tree-shaking edge case that was
+// incorrectly eliminating this code when it lived directly inside the (very
+// large) App() function body, even fully unconditional test markers placed
+// at that exact spot were dropped. A separate component with its own state
+// does not trigger it. Returns null (renders nothing) whenever apiEnabled is
+// false, i.e. by default, with no VITE_API_BASE configured.
+function SendToPartnerButton({ lang, C, payload }) {
+  const [sendStatus, setSendStatus] = useState("idle");
+  if (!apiEnabled) return null;
+
+  const sendToPartner = async () => {
+    setSendStatus("sending");
+    try {
+      await submitCalculation(payload);
+      setSendStatus("sent");
+    } catch {
+      setSendStatus("error");
+    }
+    setTimeout(() => setSendStatus("idle"), 4000);
+  };
+
+  const label = sendStatus === "sending" ? "…"
+    : sendStatus === "sent" ? (lang==="de"?"Gesendet ✓":lang==="sq"?"Dërguar ✓":lang==="sr"?"Pošato ✓":lang==="tr"?"Gönderildi ✓":"Sent ✓")
+    : sendStatus === "error" ? (lang==="de"?"Fehler":lang==="sq"?"Gabim":lang==="sr"?"Greška":lang==="tr"?"Hata":"Error")
+    : (lang==="de"?"An Behörde/Partner senden":lang==="sq"?"Dërgo te Dogana/Partneri":lang==="sr"?"Pošalji Carini/Partneru":lang==="tr"?"Gümrük/Ortağa gönder":"Send to Customs/Partner");
+
+  return (
+    <button onClick={sendToPartner} disabled={sendStatus === "sending"}
+      title={lang==="de"?"An Behörde/Partner senden":lang==="sq"?"Dërgo te Dogana/Partneri":lang==="sr"?"Pošalji Carini/Partneru":lang==="tr"?"Gümrük/Ortağa gönder":"Send to Customs/Partner"}
+      style={{ flex: "1 1 140px", background: sendStatus === "sent" ? C.greenDeep : C.glass, border: `1.5px solid ${sendStatus === "error" ? "#e0736b" : C.line}`, borderRadius: 13, padding: "13px", fontFamily: "inherit", fontWeight: 700, fontSize: 13, color: sendStatus === "sent" ? "#fff" : sendStatus === "error" ? "#e0736b" : C.ink, cursor: sendStatus === "sending" ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
+      <Send size={15} color={sendStatus === "sent" ? "#fff" : C.blue} />
+      {label}
+    </button>
+  );
+}
+
 // ─── ONBOARDING OVERLAY ─────────────────────────────────────────────────────
 function OnboardOverlay({ t, onClose }) {
   return (
@@ -2899,6 +2940,10 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
         <Download size={15} color={C.blue} /> {t.download}
       </button>
       <button onClick={saveCalc} title={lang==="de"?"Berechnung speichern":lang==="sq"?"Ruaj llogaritjen":lang==="sr"?"Sačuvaj kalkulaciju":"Save"} style={{ background: C.glass, border: `1.5px solid ${C.line}`, borderRadius: 13, padding: "13px 15px", fontFamily: "inherit", fontWeight: 700, fontSize: 14, color: C.blue, cursor: "pointer", display: "flex", alignItems: "center" }}>💾</button>
+      <SendToPartnerButton lang={lang} C={C}
+        payload={{ make, model, year, category, price, transport, insurance, engine, euro, fuel, origin, destCountry, hasEur1, isReturner,
+          result: { arrival: calc.arrival, customs: calc.customs, excise: calc.excise, vat: calc.vat, toState: calc.toState },
+          lawStand: TAX_CONFIG.stand }} />
       <button onClick={resetAll} style={{ background: C.glass, border: `1.5px solid ${C.line}`, borderRadius: 13, padding: "13px 14px", fontFamily: "inherit", fontWeight: 700, fontSize: 13, color: C.muted, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
         <RotateCcw size={14} color={C.muted} /> {t.reset}
       </button>

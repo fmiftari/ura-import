@@ -1,0 +1,23 @@
+{
+  "name": "ura-import-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "URA companion API - generic interface for future collaboration with Kosovo Customs/government and partner companies (transport, insurance, finance). Not part of the static URA frontend; runs as a separate service.",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^7.1.0"
+  },
+  "devDependencies": {
+    "supertest": "^7.0.0",
+    "vitest": "^4.1.9"
+  }
+}

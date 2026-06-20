@@ -1,0 +1,179 @@
+openapi: 3.0.3
+info:
+  title: URA Import API
+  version: 1.0.0
+  description: >
+    Companion API for URA (https://fmiftari.github.io/ura-import/), the Kosovo
+    car import cost calculator. This is the open interface for future
+    collaboration with Kosovo Customs / government bodies and with partner
+    companies (transport, customs forwarding, insurance, finance). The same
+    authentication and permission model applies to every consumer — there is
+    no special case for "government" vs "company" in the API itself; what
+    differs is only which scopes a given API key is granted.
+servers:
+  - url: https://api.ura-import.example
+    description: Placeholder — replace with the real deployment URL once hosted.
+security:
+  - ApiKeyAuth: []
+paths:
+  /health:
+    get:
+      summary: Liveness check
+      security: []
+      responses:
+        "200":
+          description: Service is up.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  service: { type: string }
+                  time: { type: string, format: date-time }
+
+  /api/v1/calculations:
+    post:
+      summary: Submit a calculation (opt-in from the URA frontend)
+      description: >
+        Requires the `calculations:write` scope. URA's frontend only calls
+        this if a user explicitly chooses to share a calculation — never by
+        default.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Free-form — typically the inputs and result of computeImportCost().
+      responses:
+        "201": { description: Stored. }
+        "400": { description: Body is not a JSON object. }
+        "401": { description: Missing or invalid API key. }
+        "403": { description: Key lacks the calculations:write scope. }
+    get:
+      summary: List your own submitted calculations
+      description: Requires the `calculations:read` scope. Returns only records created by the authenticated consumer.
+      responses:
+        "200": { description: OK }
+  /api/v1/calculations/{id}:
+    get:
+      summary: Get a single calculation by id
+      description: Requires `calculations:read`. 404s if the record belongs to a different consumer.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: OK }
+        "404": { description: Not found (or not yours). }
+
+  /api/v1/leads:
+    post:
+      summary: Submit a partner inquiry
+      description: >
+        Requires `leads:write`. Generalizes the existing Formspree-based
+        contact form in URA's PartnerPage into a stored, queryable record.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Free-form lead payload (e.g. name, contact info, vehicle details, message).
+      responses:
+        "201": { description: Stored. }
+    get:
+      summary: List leads addressed to you
+      description: Requires `leads:read`. Returns only leads tied to the authenticated consumer.
+      responses:
+        "200": { description: OK }
+
+  /api/v1/rates:
+    get:
+      summary: Get the current officially-published rates (public, no auth)
+      description: >
+        Read access is intentionally open — the rates are public law and
+        already hardcoded into URA's client-side JS today. This endpoint is
+        the hook for eventually replacing that hardcoded copy with a live,
+        government-updatable source.
+      security: []
+      responses:
+        "200": { description: "Current rates, or {rates: null} if none have been published via the API yet." }
+    put:
+      summary: Publish a new rates snapshot
+      description: >
+        Requires `rates:write`. Intended for a future Kosovo Customs
+        (Dogana e Kosovës) integration, or for URA's own admin until then.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rates: { type: object }
+                note: { type: string }
+              required: [rates]
+      responses:
+        "201": { description: Published. }
+        "403": { description: Key lacks the rates:write scope. }
+  /api/v1/rates/history:
+    get:
+      summary: Full history of published rate snapshots
+      security: []
+      responses:
+        "200": { description: OK }
+
+  /api/v1/consumers:
+    post:
+      summary: Onboard a new API consumer (admin only)
+      description: >
+        Requires the `X-Admin-Key` header (separate from regular API keys —
+        see ADMIN_API_KEY). Used by URA's operator to issue a key once a real
+        collaboration is agreed, whether with a government body or a company.
+        The returned `apiKey` is shown exactly once and cannot be retrieved again.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                type: { type: string, description: "Free-text label, e.g. government | partner | internal — descriptive only." }
+                scopes:
+                  type: array
+                  items:
+                    type: string
+                    enum: [calculations:read, calculations:write, leads:read, leads:write, rates:read, rates:write]
+              required: [name]
+      responses:
+        "201": { description: Created — response includes the one-time apiKey. }
+        "401": { description: Missing/invalid X-Admin-Key. }
+    get:
+      summary: List all consumers (admin only)
+      security: []
+      responses:
+        "200": { description: OK }
+  /api/v1/consumers/{id}:
+    delete:
+      summary: Revoke a consumer's API key (admin only)
+      security: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Revoked. }
+        "404": { description: Not found. }
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
