@@ -198,6 +198,27 @@ const WMI_BRANDS = {
   BMT:"MINI",
 };
 
+// ─── RESET-CALCULATOR BUTTON ─────────────────────────────────────────────────
+// Own component for the same reason as SendToPartnerButton above (see comment
+// there) — Rollup's tree-shaking bug struck this exact spot again (the plain
+// resetAll() handler + its button both silently vanished from the built
+// bundle while staying perfectly intact in the source / esbuild / Babel).
+// Moving the handler + JSX into a separate component fixed it again.
+function ResetCalculatorButton({ t, C, setters }) {
+  const handleReset = () => {
+    const s = setters;
+    s.setIdent(""); s.setRecMsg(null); s.setCategory(""); s.setMake(""); s.setModel(""); s.setPrice(0);
+    s.setTransport(0); s.setTransportTouched(true); s.setInsurance(0); s.setEngine(0);
+    s.setYear(0); s.setOrigin(""); s.setFuel(""); s.setEuro(0);
+    s.setHs(""); s.setIsNew(false); s.setHasEur1(false); s.setIsReturner(false); s.setErrors({}); s.setDestCountry("");
+  };
+  return (
+    <button onClick={handleReset} style={{ background: C.glass, border: `1.5px solid ${C.line}`, borderRadius: 13, padding: "13px 14px", fontFamily: "inherit", fontWeight: 700, fontSize: 13, color: C.muted, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+      <RotateCcw size={14} color={C.muted} /> {t.reset}
+    </button>
+  );
+}
+
 // Modelljahr aus VIN-Zeichen 10 (ISO 3779)
 const VIN_YEAR_MAP = {
   A:2010,B:2011,C:2012,D:2013,E:2014,F:2015,G:2016,H:2017,
@@ -2548,12 +2569,7 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
     const a = document.createElement("a"); a.href = url; a.download = "ura-permbledhje.html"; a.click(); URL.revokeObjectURL(url);
   };
 
-  const resetAll = () => {
-    setIdent(""); setRecMsg(null); setCategory("car"); setMake(""); setModel(""); setPrice(0);
-    setTransport(0); setTransportTouched(true); setInsurance(0); setEngine(0);
-    setYear(NOW_YEAR); setOrigin("DE"); setFuel("diesel"); setEuro(4);
-    setHs(""); setIsNew(false); setHasEur1(false); setErrors({}); setDestCountry("XK");
-  };
+
 
   const inputBox = { width: "100%", padding: "11px 13px", borderRadius: 12, border: `1.5px solid ${C.line}`, fontSize: 14.5, fontWeight: 500, color: C.ink, outline: "none", background: "rgba(255,255,255,0.03)", fontFamily: "inherit", boxSizing: "border-box", transition: "border-color .15s, box-shadow .15s" };
   const inputErr = { ...inputBox, borderColor: C.red, boxShadow: "0 0 0 3px rgba(224,115,107,.12)" };
@@ -2944,9 +2960,9 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
         payload={{ make, model, year, category, price, transport, insurance, engine, euro, fuel, origin, destCountry, hasEur1, isReturner,
           result: { arrival: calc.arrival, customs: calc.customs, excise: calc.excise, vat: calc.vat, toState: calc.toState },
           lawStand: TAX_CONFIG.stand }} />
-      <button onClick={resetAll} style={{ background: C.glass, border: `1.5px solid ${C.line}`, borderRadius: 13, padding: "13px 14px", fontFamily: "inherit", fontWeight: 700, fontSize: 13, color: C.muted, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
-        <RotateCcw size={14} color={C.muted} /> {t.reset}
-      </button>
+      <ResetCalculatorButton t={t} C={C} setters={{ setIdent, setRecMsg, setCategory, setMake, setModel, setPrice,
+        setTransport, setTransportTouched, setInsurance, setEngine, setYear, setOrigin, setFuel, setEuro,
+        setHs, setIsNew, setHasEur1, setIsReturner, setErrors, setDestCountry }} />
     </div>
     <div style={{ display: "flex", alignItems: "center", gap: 9, background: C.glass, border: `1px solid ${C.line}`, borderRadius: 14, padding: "12px 15px", marginBottom: 12 }}>
       <Lock size={15} color={C.muted} style={{ flexShrink: 0 }} />
