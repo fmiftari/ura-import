@@ -16,7 +16,11 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     cacheDir: "/tmp/vite-ura-cache",
     base: "/ura-import/",
-    test: { environment: "node" },
+    // server/ has its own independent package.json + node_modules + test
+    // setup (run via `cd server && npm test`, see server/README.md) — excluded
+    // here so the root CI step doesn't try to resolve the backend's
+    // dependencies (which it never installs).
+    test: { environment: "node", exclude: ["**/node_modules/**", "**/server/**"] },
     build: apiConfigured ? { rollupOptions: { treeshake: false } } : {},
   };
 });
