@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { Car, Truck, FileText, ShieldCheck, ChevronDown, ArrowRight, Lock, CheckCircle2, AlertTriangle, Download, ScrollText, ExternalLink, Building2, ScanLine, RotateCcw, Calculator, ClipboardList, Landmark, Info, Share2, Copy, Check, Scale, GitCompare, Gavel, Users, TrendingUp, ChevronRight, Home, Wrench, Send } from "lucide-react";
+import { Car, Truck, FileText, ShieldCheck, ChevronDown, ArrowRight, Lock, CheckCircle2, AlertTriangle, Download, ScrollText, ExternalLink, Building2, ScanLine, RotateCcw, Calculator, ClipboardList, Landmark, Info, Share2, Copy, Check, Scale, GitCompare, Gavel, Users, TrendingUp, ChevronRight, Home, Wrench, Send, Search } from "lucide-react";
 // Opt-in companion-API hook — inert unless VITE_API_BASE is configured at build time.
 // See server/README.md "Frontend integration" and src/api.js for details.
 import { apiEnabled, submitCalculation } from "./api.js";
@@ -216,6 +216,83 @@ function ResetCalculatorButton({ t, C, setters }) {
     <button onClick={handleReset} style={{ background: C.glass, border: `1.5px solid ${C.line}`, borderRadius: 13, padding: "13px 14px", fontFamily: "inherit", fontWeight: 700, fontSize: 13, color: C.muted, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
       <RotateCcw size={14} color={C.muted} /> {t.reset}
     </button>
+  );
+}
+
+// ─── BUDGET-RECHNER (Rückwärts) ──────────────────────────────────────────────
+// Außerhalb von App() — Rollup-Bug-Workaround.
+function BudgetRechner({ C, lang, transport, insurance, engine, ageYears, fuel, hasEur1, destCountry, isReturner }) {
+  const [budget, setBudget] = React.useState(0);
+  const [open, setOpen] = React.useState(false);
+  const labels = {
+    de: { toggle: "Budget-Rechner", sub: "Wie viel darf das Auto beim Händler maximal kosten?",
+          label: "Mein Gesamtbudget (€)", maxPrice: "Max. Kaufpreis beim Händler",
+          overhead: "Importkosten gesamt", hint: "basierend auf deinen aktuellen Parametern" },
+    en: { toggle: "Budget Calculator", sub: "What's the max I should pay the dealer?",
+          label: "My total budget (€)", maxPrice: "Max. dealer purchase price",
+          overhead: "Total import costs", hint: "based on your current parameters" },
+    sq: { toggle: "LlogaritëS Buxheti", sub: "Sa duhet të paguaj maksimalisht te shitësi?",
+          label: "Buxheti im total (€)", maxPrice: "Çmimi max. te shitësi",
+          overhead: "Kostot totale të importit", hint: "bazuar në parametrat e tu aktual" },
+    sr: { toggle: "Kalkulator Budzeta", sub: "Koliko maksimalno treba da platim kod dilera?",
+          label: "Moj ukupni budzet (€)", maxPrice: "Maks. kupovna cena kod dilera",
+          overhead: "Ukupni troskovi uvoza", hint: "na osnovu tvojih trenutnih parametara" },
+    tr: { toggle: "Bütçe Hesaplayıcı", sub: "Satıcıya maksimum ne kadar ödemeliyim?",
+          label: "Toplam bütçem (€)", maxPrice: "Maks. satıcı fiyatı",
+          overhead: "Toplam ithalat maliyeti", hint: "mevcut parametrelerine göre" },
+  };
+  const L = labels[lang] || labels.de;
+  const fmtN = (n) => Math.round(n).toLocaleString("de-CH");
+  const maxPrice = (budget > 0)
+    ? findMaxCarPrice(budget, { transport, insurance, engine, ageYears: ageYears || 0,
+        fuel, hasEur1, destCountry, isReturner })
+    : 0;
+  const overhead = budget > 0 ? budget - maxPrice : 0;
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", background: C.glass,
+          border: `1px solid ${C.line}`, borderRadius: 14, padding: "13px 16px",
+          cursor: "pointer", fontFamily: "inherit", fontSize: 13.5, fontWeight: 700, color: C.ink }}
+      >
+        <TrendingUp size={16} color={C.blue} />
+        💰 {L.toggle}
+        <ChevronDown size={16} style={{ marginLeft: "auto", transform: open ? "rotate(180deg)" : "none", transition: "transform .2s", color: C.muted }} />
+      </button>
+      {open && (
+        <div className="card" style={{ padding: "18px 18px 14px", marginTop: 6 }}>
+          <div style={{ fontSize: 12.5, color: C.muted, marginBottom: 14, lineHeight: 1.5 }}>{L.sub}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
+            <label style={{ fontSize: 12.5, fontWeight: 700, color: C.ink, whiteSpace: "nowrap", flexShrink: 0 }}>{L.label}</label>
+            <input
+              type="number" min="0" step="500"
+              value={budget || ""}
+              onChange={e => setBudget(Math.max(0, +e.target.value))}
+              placeholder="15000"
+              style={{ flex: 1, minWidth: 100, border: `1.5px solid ${C.line}`, borderRadius: 10,
+                padding: "9px 12px", fontSize: 16, fontWeight: 700,
+                fontFamily: "inherit", background: C.bg, color: C.ink, outline: "none" }}
+            />
+          </div>
+          {budget > 0 && (
+            <>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+                <div style={{ background: `${C.blue}12`, border: `1.5px solid ${C.blue}30`, borderRadius: 12, padding: "12px 14px" }}>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: C.blue, letterSpacing: 1, textTransform: "uppercase", marginBottom: 5 }}>{L.maxPrice}</div>
+                  <div style={{ fontSize: 23, fontWeight: 800, fontFamily: "'Fraunces',serif", color: C.ink, letterSpacing: "-.5px" }}>€ {fmtN(maxPrice)}</div>
+                </div>
+                <div style={{ background: C.glass, border: `1px solid ${C.line}`, borderRadius: 12, padding: "12px 14px" }}>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: C.muted, letterSpacing: 1, textTransform: "uppercase", marginBottom: 5 }}>{L.overhead}</div>
+                  <div style={{ fontSize: 23, fontWeight: 800, fontFamily: "'Fraunces',serif", color: C.amber, letterSpacing: "-.5px" }}>€ {fmtN(overhead)}</div>
+                </div>
+              </div>
+              <div style={{ fontSize: 11, color: C.muted, textAlign: "center", opacity: .7 }}>⚙️ {L.hint}</div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -783,6 +860,23 @@ export function computeImportCost({ destCountry, price, transport = 0, insurance
   const catalogVat = catalogVatBase ? catalogVatBase * TAX_CONFIG.vatRate : 0;
   const catalogArrival = catalogValue ? (catalogValue + transport + insurance) + catalogCustoms + excise + catalogVat + reg : null;
   return { cif, customs, excise, vat, vatBase, importTaxes, reg, arrival, toState, vatRefund, catalogArrival };
+}
+
+// ─── RÜCKWÄRTS-RECHNER: Budget → Maximaler Kaufpreis ──────────────────────────
+// Binary search: findet den höchsten Kaufpreis bei dem arrival ≤ budget bleibt.
+function findMaxCarPrice(budget, opts) {
+  const { transport = 0, insurance = 0, engine = 1968, ageYears = 8,
+          fuel = "diesel", hasEur1 = false, destCountry = "XK",
+          isNew = false, isReturner = false } = opts;
+  if (budget <= 0) return 0;
+  let lo = 0, hi = budget;
+  for (let i = 0; i < 80; i++) {
+    const mid = (lo + hi) / 2;
+    const r = computeImportCost({ destCountry, price: mid, transport, insurance,
+      engine, ageYears, isNew, fuel, hasEur1, isReturner });
+    if (r.arrival <= budget) lo = mid; else hi = mid;
+  }
+  return Math.floor(lo);
 }
 
 // URL state encoding / decoding
@@ -2968,6 +3062,9 @@ ${calc.vatRefund > 50 ? `<div class="refund">💡 ${t.vatRefundDesc(Math.round((
       <Lock size={15} color={C.muted} style={{ flexShrink: 0 }} />
       <div style={{ fontSize: 11.5, color: C.muted, fontWeight: 600, lineHeight: 1.45 }}>{t.locked(TAX_CONFIG.stand)}</div>
     </div>
+    <BudgetRechner C={C} lang={lang} transport={transport} insurance={insurance}
+      engine={engine} ageYears={ageYears} fuel={fuel} hasEur1={hasEur1}
+      destCountry={destCountry} isReturner={isReturner} />
     <button onClick={() => setShowMethod(s => !s)} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", background: C.glass, border: `1px solid ${C.line}`, borderRadius: 14, padding: "13px 16px", cursor: "pointer", fontFamily: "inherit", fontSize: 13.5, fontWeight: 700, color: C.ink }}>
       <ScrollText size={16} color={C.blue} /> {t.methodology}
       <ChevronDown size={16} style={{ marginLeft: "auto", transform: showMethod ? "rotate(180deg)" : "none", transition: "transform .2s", color: C.muted }} />
@@ -3451,6 +3548,8 @@ function PartnerPage({ lang, C, make, model, year, price, engine, fuel, destCoun
       fSub:      "KFZ-Kredite und Fahrzeugfinanzierung",
       insurance: "🛡️ Versicherungen",
       iSub:      "KFZ-Haftpflicht & Kasko für importierte Fahrzeuge",
+      inspection: "🔍 Fahrzeugprüfung",
+      inSub:     "Vorabinspektion vor dem Kauf — DEKRA, TÜV & Sachverständige in DE / CH / AT",
       visit:     "Website",
       quote:     "Anfrage senden",
       become:    "Partner werden",
@@ -3470,6 +3569,8 @@ function PartnerPage({ lang, C, make, model, year, price, engine, fuel, destCoun
       fSub:      "Car loans and vehicle financing",
       insurance: "🛡️ Insurance Providers",
       iSub:      "Car liability & comprehensive insurance for imported vehicles",
+      inspection: "🔍 Vehicle Inspection",
+      inSub:     "Pre-purchase vehicle inspection — DEKRA, TÜV & certified experts in DE / CH / AT",
       visit:     "Website",
       quote:     "Send inquiry",
       become:    "Become a partner",
@@ -3489,6 +3590,8 @@ function PartnerPage({ lang, C, make, model, year, price, engine, fuel, destCoun
       fSub:      "Kredi dhe financim automjeti",
       insurance: "🛡️ Sigurime",
       iSub:      "Sigurim përgjegjësie & kasko për automjete të importuara",
+      inspection: "🔍 Inspektim i Automjetit",
+      inSub:     "Kontroll para blerjes — DEKRA, TÜV & ekspertë të certifikuar në DE / CH / AT",
       visit:     "Faqja",
       quote:     "Dërgo kërkesë",
       become:    "Bëhu partner",
@@ -3508,6 +3611,8 @@ function PartnerPage({ lang, C, make, model, year, price, engine, fuel, destCoun
       fSub:      "Auto krediti i finansiranje vozila",
       insurance: "🛡️ Osiguranja",
       iSub:      "Auto osiguranje i kasko za uvezena vozila",
+      inspection: "🔍 Pregled Vozila",
+      inSub:     "Pregled pre kupovine — DEKRA, TÜV & sertifikovani stručnjaci u DE / CH / AT",
       visit:     "Web stranica",
       quote:     "Pošalji upit",
       become:    "Postani partner",
@@ -3527,6 +3632,8 @@ function PartnerPage({ lang, C, make, model, year, price, engine, fuel, destCoun
       fSub:      "Araç kredisi ve finansmanı",
       insurance: "🛡️ Sigorta Şirketleri",
       iSub:      "İthal araçlar için trafik sigortası & kasko",
+      inspection: "🔍 Araç Muayenesi",
+      inSub:     "Satın almadan önce muayene — DE / CH / AT'da DEKRA, TÜV & sertifikalı uzmanlar",
       visit:     "Web sitesi",
       quote:     "Talep gönder",
       become:    "Ortak olun",
@@ -3667,12 +3774,46 @@ function PartnerPage({ lang, C, make, model, year, price, engine, fuel, destCoun
     },
   ];
 
+  // PLATZHALTER — Flamur: echte Fahrzeugprüfungs-Partner eintragen (DEKRA, TÜV, Gutachter).
+  // Carvago-Inspiration: CarAudit™ (270-Punkte) — Kosovo-Käufer kaufen oft ohne Vorabkontrolle.
+  const INSPECTION = [
+    {
+      name:"[Platzhalter] Fahrzeugprüfung 1",
+      hq:"DE / CH / AT",
+      email:"partner@ura-import.info",
+      url:"#",
+      tag:{
+        de:"Slot frei · 270-Punkte Vorabinspektion vor dem Import",
+        en:"Slot open · 270-point pre-purchase inspection before import",
+        sq:"Vend i lirë · inspektim 270-pikësh para importit",
+        sr:"Slot slobodan · 270-točkasti pregled pre uvoza",
+        tr:"Slot açık · ithalat öncesi 270 noktalı ön muayene",
+      },
+      accent:"#5a8fc9", init:"🔍",
+    },
+    {
+      name:"[Platzhalter] Fahrzeugprüfung 2",
+      hq:"DE / CH / AT",
+      email:"partner@ura-import.info",
+      url:"#",
+      tag:{
+        de:"Slot frei · Unfallhistorie, Tachostand, Motordiagnose",
+        en:"Slot open · accident history, odometer, engine diagnostics",
+        sq:"Vend i lirë · historia aksidenteve, kilometrazhi, diagnoza e motorit",
+        sr:"Slot slobodan · istorija udesa, kilometraža, dijagnostika motora",
+        tr:"Slot açık · kaza geçmişi, kilometre, motor tanısı",
+      },
+      accent:"#5a8fc9", init:"🔍",
+    },
+  ];
+
   // ── Category icon helper ────────────────────────────────────────────────
   const CatIcon = ({ cat, accent, size=22 }) => {
     const s = { color: accent };
-    if (cat === "transport") return <Truck size={size} style={s} />;
-    if (cat === "sped")      return <ClipboardList size={size} style={s} />;
-    if (cat === "insurance") return <ShieldCheck size={size} style={s} />;
+    if (cat === "transport")  return <Truck size={size} style={s} />;
+    if (cat === "sped")       return <ClipboardList size={size} style={s} />;
+    if (cat === "insurance")  return <ShieldCheck size={size} style={s} />;
+    if (cat === "inspection") return <Search size={size} style={s} />;
     return <Landmark size={size} style={s} />;
   };
 
@@ -3864,6 +4005,14 @@ function PartnerPage({ lang, C, make, model, year, price, engine, fuel, destCoun
       <div style={grid}>
         <FeaturedCard co={INSURANCE[0]} cat="insurance" />
         {INSURANCE.slice(1).map((co,i) => <CompanyCard key={i} co={co} cat="insurance" />)}
+        <BecomePartner />
+      </div>
+
+      {/* Fahrzeugprüfung */}
+      <SectionHeader title={L.inspection} sub={L.inSub} cat="inspection" />
+      <div style={grid}>
+        <FeaturedCard co={INSPECTION[0]} cat="inspection" />
+        {INSPECTION.slice(1).map((co,i) => <CompanyCard key={i} co={co} cat="inspection" />)}
         <BecomePartner />
       </div>
 
